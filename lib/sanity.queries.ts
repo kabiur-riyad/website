@@ -1,5 +1,5 @@
 export const photoGridQuery = `
-  *[_type == "photo" && defined(image) && homeVisible == true] | order(publishedAt desc) {
+  *[_type == "photo" && defined(image) && homeVisible != false] | order(publishedAt desc) {
     _id,
     title,
     caption,
