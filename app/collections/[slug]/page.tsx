@@ -80,8 +80,8 @@ export default async function CollectionDetailPage({
 
         <section className="photo-series">
           {[...(project.photos ?? []), ...(project.relatedPhotos ?? [])].map(
-            (photo) => (
-            <div className="series-card" key={photo._key || photo._id}>
+            (photo, index) => (
+            <div className="series-card" key={photo._key ?? photo._id ?? index}>
               {(() => {
                 if (!photo.image) return null;
                 const builder = urlFor(photo.image);
