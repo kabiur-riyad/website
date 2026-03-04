@@ -14,7 +14,7 @@ export default function PhotoGridClient({ photos }: Props) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
-  const [heights, setHeights] = useState<Record<number, number>>({});
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -41,25 +41,37 @@ export default function PhotoGridClient({ photos }: Props) {
   }, [columns, containerWidth]);
 
   const layout = useMemo(() => {
+    if (!itemWidth) return { positions: [], totalHeight: 0 };
     const colHeights = Array(columns).fill(0);
-    const positions = photos.map((_, index) => {
-      const height = heights[index] ?? 0;
+    const positions = photos.map((photo) => {
+      const dims = getImageDimensions(photo.image);
+      const width = dims?.width ?? 1200;
+      const height = dims?.height ?? 1500;
+      const renderedHeight = Math.round((itemWidth * height) / width);
       const col = colHeights.indexOf(Math.min(...colHeights));
       const x = col * (itemWidth + gap);
       const y = colHeights[col];
-      colHeights[col] += height + gap;
+      colHeights[col] += renderedHeight + gap;
       return { x, y };
     });
     const totalHeight = colHeights.length ? Math.max(...colHeights) : 0;
     return { positions, totalHeight };
-  }, [photos, heights, columns, itemWidth]);
+  }, [photos, columns, itemWidth]);
+
+  useEffect(() => {
+    if (itemWidth && layout.positions.length === photos.length) {
+      const id = window.requestAnimationFrame(() => setReady(true));
+      return () => window.cancelAnimationFrame(id);
+    }
+    setReady(false);
+  }, [itemWidth, layout.positions.length, photos.length]);
 
   return (
     <>
       <div
         className="photo-grid"
         ref={containerRef}
-        style={{ height: layout.totalHeight }}
+        style={{ height: layout.totalHeight, opacity: ready ? 1 : 0 }}
       >
         {photos.map((photo, index) => (
           <button
@@ -90,9 +102,6 @@ export default function PhotoGridClient({ photos }: Props) {
                 .quality(80)
                 .url();
               if (!src) return null;
-              const renderedHeight = itemWidth
-                ? Math.round((itemWidth * height) / width)
-                : 0;
               return (
                 <Image
                   src={src}
@@ -101,14 +110,6 @@ export default function PhotoGridClient({ photos }: Props) {
                   height={height}
                   sizes="(max-width: 768px) 92vw, (max-width: 1200px) 45vw, 30vw"
                   priority={false}
-                  onLoad={() => {
-                    if (!renderedHeight) return;
-                    setHeights((prev) =>
-                      prev[index] === renderedHeight
-                        ? prev
-                        : { ...prev, [index]: renderedHeight }
-                    );
-                  }}
                 />
               );
             })()}
