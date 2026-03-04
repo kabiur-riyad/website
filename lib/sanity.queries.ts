@@ -1,0 +1,77 @@
+export const photoGridQuery = `
+  *[_type == "photo" && defined(image)] | order(publishedAt desc) {
+    _id,
+    title,
+    caption,
+    image{
+      ...,
+      "assetMeta": asset->{
+        metadata{dimensions}
+      }
+    }
+  }
+`;
+
+export const projectsQuery = `
+  *[_type == "project"] | order(publishedAt desc) {
+    _id,
+    title,
+    slug,
+    excerpt,
+    coverImage{
+      ...,
+      "assetMeta": asset->{
+        metadata{dimensions}
+      }
+    }
+  }
+`;
+
+export const projectBySlugQuery = `
+  *[_type == "project" && slug.current == $slug][0] {
+    _id,
+    title,
+    slug,
+    description,
+    coverImage{
+      ...,
+      "assetMeta": asset->{
+        metadata{dimensions}
+      }
+    },
+    photos[]{
+      _key,
+      image{
+        ...,
+        "assetMeta": asset->{
+          metadata{dimensions}
+        }
+      },
+      caption
+    }
+  }
+`;
+
+export const siteSettingsQuery = `
+  *[_type == "siteSettings"][0] {
+    _id,
+    title,
+    bio,
+    portrait{
+      ...,
+      "assetMeta": asset->{
+        metadata{dimensions}
+      }
+    },
+    favicon{
+      ...,
+      "assetMeta": asset->{
+        metadata{dimensions}
+      }
+    },
+    email,
+    instagramUrl,
+    contactBlurb,
+    contactFormEnabled
+  }
+`;

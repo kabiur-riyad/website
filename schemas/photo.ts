@@ -1,0 +1,44 @@
+import { defineType, defineField } from "sanity";
+
+export default defineType({
+  name: "photo",
+  title: "Photo",
+  type: "document",
+  fields: [
+    defineField({
+      name: "title",
+      title: "Title",
+      type: "string",
+    }),
+    defineField({
+      name: "caption",
+      title: "Caption",
+      type: "string",
+    }),
+    defineField({
+      name: "image",
+      title: "Image",
+      type: "image",
+      options: { hotspot: true },
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: "publishedAt",
+      title: "Published At",
+      type: "datetime",
+      initialValue: () => new Date().toISOString(),
+    }),
+  ],
+  preview: {
+    select: {
+      title: "title",
+      media: "image",
+    },
+    prepare(selection) {
+      return {
+        title: selection.title || "Photo",
+        media: selection.media,
+      };
+    },
+  },
+});
