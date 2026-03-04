@@ -6,7 +6,7 @@ import { Project } from "@/lib/types";
 export const revalidate = 60;
 
 export async function generateMetadata() {
-  return { title: "Projects - Kabiur Rahman Riyad" };
+  return { title: "Collections - Kabiur Rahman Riyad" };
 }
 
 async function getProjects() {
@@ -14,23 +14,20 @@ async function getProjects() {
   return sanityClient.fetch<Project[]>(projectsQuery);
 }
 
-export default async function ProjectsPage() {
+export default async function CollectionsPage() {
   const projects = await getProjects();
 
   return (
     <main className="page">
       <div className="container">
         <section className="hero">
-          <h1>Projects</h1>
-          <p>
-            Long-form stories and photographic series, curated with deliberate pacing.
-          </p>
+          <h1>Collections</h1>
         </section>
 
         {hasSanityConfig ? (
           <ProjectGrid projects={projects} />
         ) : (
-          <p>Connect Sanity to publish your project archive.</p>
+          <p>Connect Sanity to publish your collections.</p>
         )}
       </div>
     </main>

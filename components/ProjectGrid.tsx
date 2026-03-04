@@ -14,7 +14,7 @@ export default function ProjectGrid({ projects }: Props) {
         <Link
           key={project._id}
           className="project-card"
-          href={`/projects/${project.slug.current}`}
+          href={`/collections/${project.slug.current}`}
         >
           {project.coverImage ? (
             (() => {

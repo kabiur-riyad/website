@@ -15,7 +15,7 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const project = await getProject(slug);
-  if (!project) return { title: "Project - Kabiur Rahman Riyad" };
+  if (!project) return { title: "Collection - Kabiur Rahman Riyad" };
   return { title: `${project.title} - Kabiur Rahman Riyad` };
 }
 
@@ -24,7 +24,7 @@ async function getProject(slug: string) {
   return sanityClient.fetch<Project | null>(projectBySlugQuery, { slug });
 }
 
-export default async function ProjectDetailPage({
+export default async function CollectionDetailPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
