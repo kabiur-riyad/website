@@ -34,7 +34,7 @@ export type Project = {
   title: string;
   slug: Slug;
   excerpt?: string;
-  description?: string;
+  description?: any;
   coverImage?: SanityImage;
   photos?: ProjectPhoto[];
 };
