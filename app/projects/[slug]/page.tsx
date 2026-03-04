@@ -8,8 +8,13 @@ import { getImageDimensions, urlFor } from "@/lib/sanity.image";
 
 export const revalidate = 60;
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const project = await getProject(params.slug);
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const project = await getProject(slug);
   if (!project) return { title: "Project - Kabiur Rahman Riyad" };
   return { title: `${project.title} - Kabiur Rahman Riyad` };
 }
@@ -22,9 +27,10 @@ async function getProject(slug: string) {
 export default async function ProjectDetailPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const project = await getProject(params.slug);
+  const { slug } = await params;
+  const project = await getProject(slug);
 
   if (!project) {
     notFound();
