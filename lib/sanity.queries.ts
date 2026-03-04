@@ -1,5 +1,5 @@
 export const photoGridQuery = `
-  *[_type == "photo" && defined(image)] | order(publishedAt desc) {
+  *[_type == "photo" && defined(image) && homeVisible == true] | order(publishedAt desc) {
     _id,
     title,
     caption,
@@ -48,6 +48,17 @@ export const projectBySlugQuery = `
         }
       },
       caption
+    },
+    "relatedPhotos": *[_type == "photo" && collection._ref == ^._id && defined(image)] | order(publishedAt desc) {
+      _id,
+      title,
+      caption,
+      image{
+        ...,
+        "assetMeta": asset->{
+          metadata{dimensions}
+        }
+      }
     }
   }
 `;

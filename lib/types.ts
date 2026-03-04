@@ -20,6 +20,7 @@ export type Photo = {
   _id: string;
   title?: string;
   caption?: string;
+  homeVisible?: boolean;
   image: SanityImage;
 };
 
@@ -37,6 +38,7 @@ export type Project = {
   description?: any;
   coverImage?: SanityImage;
   photos?: ProjectPhoto[];
+  relatedPhotos?: Photo[];
 };
 
 export type SiteSettings = {

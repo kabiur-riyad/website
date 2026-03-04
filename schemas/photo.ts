@@ -23,6 +23,18 @@ export default defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: "homeVisible",
+      title: "Show On Home Grid",
+      type: "boolean",
+      initialValue: true,
+    }),
+    defineField({
+      name: "collection",
+      title: "Collection",
+      type: "reference",
+      to: [{ type: "project" }],
+    }),
+    defineField({
       name: "publishedAt",
       title: "Published At",
       type: "datetime",

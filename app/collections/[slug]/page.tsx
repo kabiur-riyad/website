@@ -79,8 +79,9 @@ export default async function CollectionDetailPage({
         </section>
 
         <section className="photo-series">
-          {project.photos?.map((photo) => (
-            <div className="series-card" key={photo._key}>
+          {[...(project.photos ?? []), ...(project.relatedPhotos ?? [])].map(
+            (photo) => (
+            <div className="series-card" key={photo._key || photo._id}>
               {(() => {
                 if (!photo.image) return null;
                 const builder = urlFor(photo.image);
@@ -110,7 +111,8 @@ export default async function CollectionDetailPage({
                 <div className="photo-caption">{photo.caption}</div>
               ) : null}
             </div>
-          ))}
+            )
+          )}
         </section>
       </div>
     </main>
