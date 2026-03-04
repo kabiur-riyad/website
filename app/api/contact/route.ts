@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     await resend.emails.send({
       from: "messages@riyad.pro.bd",
       to,
-      reply_to: email,
+      replyTo: email,
       subject: `New contact form message from ${name}`,
       text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
     });
