@@ -36,7 +36,7 @@ export default function PhotoGridClient({ photos }: Props) {
 
   const gap = 18;
   const itemWidth = useMemo(() => {
-    if (columns === 0) return 0;
+    if (!containerWidth) return 0;
     return (containerWidth - gap * (columns - 1)) / columns;
   }, [columns, containerWidth]);
 
