@@ -14,14 +14,14 @@ const body = Manrope({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://riyad.pro.bd";
+  let settings: SiteSettings | null = null;
   let icon: string | undefined;
+
   if (hasSanityConfig && sanityClient) {
-    const settings = await sanityClient.fetch<SiteSettings | null>(
-      siteSettingsQuery
-    );
+    settings = await sanityClient.fetch<SiteSettings | null>(siteSettingsQuery);
     if (settings?.favicon) {
-      const builder = urlFor(settings.favicon);
-      icon = builder
+      icon = urlFor(settings.favicon)
         ?.width(64)
         ?.height(64)
         ?.fit("max")
@@ -30,10 +30,51 @@ export async function generateMetadata(): Promise<Metadata> {
         ?.url();
     }
   }
+
+  const title = settings?.title || "Kabiur Rahman Riyad";
+  const description = settings?.bio || "Street, travel, and documentary photography portfolio.";
+
   return {
-    title: "Kabiur Rahman Riyad",
-    description: "Street, travel, and documentary photography portfolio.",
+    metadataBase: new URL(baseUrl),
+    title: {
+      default: title,
+      template: `%s | ${title}`,
+    },
+    description,
+    keywords: ["photography", "portfolio", "street photography", "travel photography", "documentary"],
+    authors: [{ name: "Kabiur Rahman Riyad" }],
+    creator: "Kabiur Rahman Riyad",
     icons: icon ? { icon } : undefined,
+    openGraph: {
+      type: "website",
+      locale: "en_US",
+      url: baseUrl,
+      siteName: title,
+      title,
+      description,
+      images: [
+        {
+          url: "/og-image.png", // Fallback or dynamic OG image
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      creator: "@riyad_pro", // Replace if known or keep generic
+      images: ["/og-image.png"],
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+    alternates: {
+      canonical: baseUrl,
+    },
   };
 }
 

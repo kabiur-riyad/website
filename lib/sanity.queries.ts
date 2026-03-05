@@ -89,3 +89,9 @@ export const siteSettingsQuery = `
     collectionDefaultViewMode
   }
 `;
+export const sitemapDataQuery = `
+  *[_type == "project"] {
+    "slug": slug.current,
+    "lastmod": _updatedAt
+  }
+`;

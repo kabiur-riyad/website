@@ -4,6 +4,8 @@ import { sanityClient, hasSanityConfig } from "@/lib/sanity.client";
 import { projectBySlugQuery, siteSettingsQuery } from "@/lib/sanity.queries";
 import { Project, SiteSettings } from "@/lib/types";
 import PhotoGridClient from "@/components/PhotoGridClient";
+import { Metadata } from "next";
+import { urlFor } from "@/lib/sanity.image";
 
 export const revalidate = 60;
 
@@ -11,11 +13,35 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
-}) {
+}): Promise<Metadata> {
   const { slug } = await params;
   const project = await getProject(slug);
-  if (!project) return { title: "Collection - Kabiur Rahman Riyad" };
-  return { title: `${project.title} - Kabiur Rahman Riyad` };
+
+  if (!project) {
+    return {
+      title: "Collection",
+    };
+  }
+
+  const title = project.title;
+  const description = project.excerpt || `Photography collection: ${project.title}`;
+  const ogImage = project.coverImage ? urlFor(project.coverImage)?.width(1200).height(630).url() : undefined;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: ogImage ? [{ url: ogImage }] : [],
+    },
+    twitter: {
+      card: ogImage ? "summary_large_image" : "summary",
+      title,
+      description,
+      images: ogImage ? [ogImage] : [],
+    },
+  };
 }
 
 async function getProject(slug: string) {

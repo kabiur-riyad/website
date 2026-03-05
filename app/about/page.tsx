@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { PortableText } from "@portabletext/react";
 import ContactForm from "@/components/ContactForm";
@@ -8,8 +9,11 @@ import { getImageDimensions, urlFor } from "@/lib/sanity.image";
 
 export const revalidate = 60;
 
-export async function generateMetadata() {
-  return { title: "About - Kabiur Rahman Riyad" };
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "About",
+    description: "Learn more about Kabiur Rahman Riyad, a street, travel, and documentary photographer.",
+  };
 }
 
 async function getSettings() {

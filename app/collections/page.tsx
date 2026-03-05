@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import ProjectGrid from "@/components/ProjectGrid";
 import { sanityClient, hasSanityConfig } from "@/lib/sanity.client";
 import { projectsQuery } from "@/lib/sanity.queries";
@@ -5,8 +6,11 @@ import { Project } from "@/lib/types";
 
 export const revalidate = 60;
 
-export async function generateMetadata() {
-  return { title: "Collections - Kabiur Rahman Riyad" };
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "Collections",
+    description: "Explore photography collections and series by Kabiur Rahman Riyad.",
+  };
 }
 
 async function getProjects() {
