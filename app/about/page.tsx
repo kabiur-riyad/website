@@ -40,6 +40,9 @@ export default async function AboutPage() {
                 ) : (
                   <p>Add your About content in Site Settings.</p>
                 )}
+                <p style={{ marginTop: "1rem" }}>
+                  <a href="/cv.html">View CV</a>
+                </p>
               </div>
               {settings.portrait ? (
                 <div className="about-portrait">
