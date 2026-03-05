@@ -295,8 +295,20 @@ img {
 .projects-grid {
   display: grid;
   gap: 26px;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 420px));
+  grid-template-columns: repeat(3, 1fr);
   justify-content: start;
+}
+
+@media (max-width: 1024px) {
+  .projects-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .projects-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .collection-carousel {
@@ -603,18 +615,6 @@ img {
 
   .page {
     padding: 24px 16px 60px;
-  }
-
-  .projects-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .project-card {
-    max-width: none;
-  }
-
-  .project-card.collection-carousel-card {
-    max-width: none;
   }
 
   .photo-carousel {
