@@ -65,6 +65,13 @@ export default defineType({
       },
     }),
     defineField({
+      name: "ogDescription",
+      title: "OG Description",
+      type: "text",
+      rows: 2,
+      description: "Description shown when sharing the site on social media. Falls back to the first 160 characters of the About Bio if empty.",
+    }),
+    defineField({
       name: "contactBlurb",
       title: "Contact Blurb",
       type: "array",

@@ -51,6 +51,7 @@ export type SiteSettings = {
   instagramUrl?: string;
   theme?: "default" | "white" | "dark";
   backgroundColor?: string;
+  ogDescription?: string;
   contactBlurb?: any;
   contactFormEnabled?: boolean;
   collectionDefaultViewMode?: "grid" | "carousel";

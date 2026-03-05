@@ -12,6 +12,19 @@ export const photoGridQuery = `
   }
 `;
 
+export const latestPhotoQuery = `
+  *[_type == "photo" && defined(image) && homeVisible != false] | order(orderRank asc)[0] {
+    _id,
+    title,
+    image{
+      ...,
+      "assetMeta": asset->{
+        metadata{dimensions}
+      }
+    }
+  }
+`;
+
 export const projectsQuery = `
   *[_type == "project"] | order(publishedAt desc) {
     _id,
@@ -84,6 +97,7 @@ export const siteSettingsQuery = `
     instagramUrl,
     theme,
     backgroundColor,
+    ogDescription,
     contactBlurb,
     contactFormEnabled,
     collectionDefaultViewMode

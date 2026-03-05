@@ -3,9 +3,10 @@ import { Manrope } from "next/font/google";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import { sanityClient, hasSanityConfig } from "@/lib/sanity.client";
-import { siteSettingsQuery } from "@/lib/sanity.queries";
-import type { SiteSettings } from "@/lib/types";
+import { siteSettingsQuery, latestPhotoQuery } from "@/lib/sanity.queries";
+import type { SiteSettings, Photo } from "@/lib/types";
 import { urlFor } from "@/lib/sanity.image";
+import { toPlainText } from "@portabletext/react";
 
 const body = Manrope({
   subsets: ["latin"],
@@ -16,10 +17,14 @@ const body = Manrope({
 export async function generateMetadata(): Promise<Metadata> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://riyad.pro.bd";
   let settings: SiteSettings | null = null;
+  let latestPhoto: Photo | null = null;
   let icon: string | undefined;
 
   if (hasSanityConfig && sanityClient) {
-    settings = await sanityClient.fetch<SiteSettings | null>(siteSettingsQuery);
+    [settings, latestPhoto] = await Promise.all([
+      sanityClient.fetch<SiteSettings | null>(siteSettingsQuery),
+      sanityClient.fetch<Photo | null>(latestPhotoQuery),
+    ]);
     if (settings?.favicon) {
       icon = urlFor(settings.favicon)
         ?.width(64)
@@ -32,7 +37,20 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   const title = settings?.title || "Kabiur Rahman Riyad";
-  const description = settings?.bio || "Street, travel, and documentary photography portfolio.";
+  const description =
+    settings?.ogDescription ||
+    (settings?.bio ? toPlainText(settings.bio).slice(0, 160) : null) ||
+    "Street, travel, and documentary photography portfolio.";
+
+  const ogImage = latestPhoto?.image
+    ? urlFor(latestPhoto.image)
+        ?.width(1200)
+        ?.height(630)
+        ?.fit("crop")
+        ?.auto("format")
+        ?.quality(80)
+        ?.url()
+    : undefined;
 
   return {
     metadataBase: new URL(baseUrl),
@@ -52,21 +70,23 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: title,
       title,
       description,
-      images: [
-        {
-          url: "/og-image.png", // Fallback or dynamic OG image
-          width: 1200,
-          height: 630,
-          alt: title,
-        },
-      ],
+      images: ogImage
+        ? [
+            {
+              url: ogImage,
+              width: 1200,
+              height: 630,
+              alt: latestPhoto?.title || title,
+            },
+          ]
+        : [],
     },
     twitter: {
-      card: "summary_large_image",
+      card: ogImage ? "summary_large_image" : "summary",
       title,
       description,
-      creator: "@riyad_pro", // Replace if known or keep generic
-      images: ["/og-image.png"],
+      creator: "@riyad_pro",
+      images: ogImage ? [ogImage] : [],
     },
     robots: {
       index: true,
