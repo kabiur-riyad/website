@@ -40,6 +40,7 @@ export default function ProjectGrid({ projects }: Props) {
                     height={height}
                     sizes="(max-width: 768px) 92vw, 45vw"
                     style={{ width: "100%", height: "auto" }}
+                    draggable={false}
                   />
                 );
               })()

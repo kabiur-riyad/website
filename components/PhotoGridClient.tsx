@@ -242,6 +242,7 @@ export default function PhotoGridClient({
                     height={height}
                     sizes="(max-width: 768px) 92vw, (max-width: 1200px) 45vw, 30vw"
                     priority={false}
+                    draggable={false}
                   />
                 );
               })()}
