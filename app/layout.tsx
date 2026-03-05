@@ -42,16 +42,34 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  let backgroundColor = "#f6f4f1";
+  let theme: SiteSettings["theme"] = "default";
   let instagramUrl: string | undefined;
   if (hasSanityConfig && sanityClient) {
     const settings = await sanityClient.fetch<SiteSettings | null>(
       siteSettingsQuery
     );
     instagramUrl = settings?.instagramUrl;
+    if (
+      settings?.theme &&
+      (settings.theme === "default" ||
+        settings.theme === "white" ||
+        settings.theme === "dark")
+    ) {
+      theme = settings.theme;
+    }
+    if (
+      theme === "default" &&
+      settings?.backgroundColor &&
+      /^#([0-9a-fA-F]{6})$/.test(settings.backgroundColor)
+    ) {
+      backgroundColor = settings.backgroundColor;
+    }
   }
+  const bodyStyle = theme === "default" ? { ["--paper" as any]: backgroundColor } : undefined;
   return (
-    <html lang="en" className={body.variable}>
-      <body>
+    <html lang="en" className={body.variable} data-theme={theme}>
+      <body style={bodyStyle}>
         <Nav instagramUrl={instagramUrl} />
         {children}
       </body>

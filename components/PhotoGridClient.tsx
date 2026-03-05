@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { Photo } from "@/lib/types";
 import { getImageDimensions, urlFor } from "@/lib/sanity.image";
@@ -8,25 +8,58 @@ import Lightbox from "./Lightbox";
 
 type Props = {
   photos: Photo[];
+  defaultViewMode?: "grid" | "carousel";
+  hideViewToggle?: boolean;
 };
 
-export default function PhotoGridClient({ photos }: Props) {
+export default function PhotoGridClient({
+  photos,
+  defaultViewMode = "carousel",
+  hideViewToggle = false,
+}: Props) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "carousel">(defaultViewMode);
+  const [carouselIndex, setCarouselIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [ready, setReady] = useState(false);
+  const swipeStartX = useRef<number | null>(null);
+  const VIEW_MODE_KEY = "photo_view_mode";
 
   useEffect(() => {
+    if (hideViewToggle) {
+      setViewMode(defaultViewMode);
+      return;
+    }
+    const saved = window.localStorage.getItem(VIEW_MODE_KEY);
+    if (saved === "grid" || saved === "carousel") {
+      setViewMode(saved);
+    }
+  }, [defaultViewMode, hideViewToggle]);
+
+  useEffect(() => {
+    if (hideViewToggle) return;
+    window.localStorage.setItem(VIEW_MODE_KEY, viewMode);
+  }, [hideViewToggle, viewMode]);
+
+  const goPrev = useCallback(() => {
+    setCarouselIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
+  }, [photos.length]);
+
+  const goNext = useCallback(() => {
+    setCarouselIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
+  }, [photos.length]);
+
+  useEffect(() => {
+    if (viewMode !== "grid") return;
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
-      if (entry) {
-        setContainerWidth(entry.contentRect.width);
-      }
+      if (entry) setContainerWidth(entry.contentRect.width);
     });
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [viewMode]);
 
   const columns = useMemo(() => {
     if (containerWidth >= 1200) return 3;
@@ -39,14 +72,19 @@ export default function PhotoGridClient({ photos }: Props) {
     if (containerWidth >= 800) return 22;
     return 28;
   }, [containerWidth]);
+
   const sideInset = useMemo(() => {
     if (containerWidth >= 1200) return 0;
     if (containerWidth >= 800) return 6;
     return 12;
   }, [containerWidth]);
+
   const itemWidth = useMemo(() => {
-    if (!containerWidth) return 0;
-    return (containerWidth - sideInset * 2 - gap * (columns - 1)) / columns;
+    const effectiveWidth =
+      containerWidth ||
+      (typeof window !== "undefined" ? window.innerWidth - sideInset * 2 : 0);
+    if (!effectiveWidth) return 0;
+    return (effectiveWidth - sideInset * 2 - gap * (columns - 1)) / columns;
   }, [columns, containerWidth, gap, sideInset]);
 
   const layout = useMemo(() => {
@@ -75,56 +113,192 @@ export default function PhotoGridClient({ photos }: Props) {
     setReady(false);
   }, [itemWidth, layout.positions.length, photos.length]);
 
+  useEffect(() => {
+    if (viewMode !== "carousel" || selectedIndex !== null) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        goPrev();
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        goNext();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [viewMode, selectedIndex, goPrev, goNext]);
+
+  const currentPhoto = photos[carouselIndex];
+
+  const currentDims = useMemo(() => {
+    if (!currentPhoto?.image) return { width: 1200, height: 1500 };
+    const dims = getImageDimensions(currentPhoto.image);
+    return { width: dims?.width ?? 1200, height: dims?.height ?? 1500 };
+  }, [currentPhoto]);
+
+  const currentSrc = useMemo(() => {
+    if (!currentPhoto?.image) return null;
+    const builder = urlFor(currentPhoto.image);
+    if (!builder) return null;
+    return (
+      builder
+        .width(2200)
+        .height(Math.round((2200 * currentDims.height) / currentDims.width))
+        .fit("max")
+        .auto("format")
+        .quality(82)
+        .url() || null
+    );
+  }, [currentPhoto, currentDims.height, currentDims.width]);
+
+  useEffect(() => {
+    if (viewMode !== "carousel" || !photos.length) return;
+    const prevIndex = carouselIndex === 0 ? photos.length - 1 : carouselIndex - 1;
+    const nextIndex = carouselIndex === photos.length - 1 ? 0 : carouselIndex + 1;
+    const neighbors = [photos[prevIndex], photos[nextIndex]];
+    neighbors.forEach((photo) => {
+      if (!photo?.image) return;
+      const builder = urlFor(photo.image);
+      if (!builder) return;
+      const dims = getImageDimensions(photo.image);
+      const width = dims?.width ?? 1200;
+      const height = dims?.height ?? 1500;
+      const src = builder
+        .width(2200)
+        .height(Math.round((2200 * height) / width))
+        .fit("max")
+        .auto("format")
+        .quality(82)
+        .url();
+      if (!src) return;
+      const preloader = new window.Image();
+      preloader.src = src;
+    });
+  }, [viewMode, carouselIndex, photos]);
+
   return (
     <>
-      <div
-        className="photo-grid"
-        ref={containerRef}
-        style={{ height: layout.totalHeight, opacity: ready ? 1 : 0 }}
-      >
-        {photos.map((photo, index) => (
+      {!hideViewToggle ? (
+        <div className="view-toggle" role="tablist" aria-label="View mode">
           <button
-            key={photo._id}
             type="button"
-            className="photo-card"
-            onClick={() => setSelectedIndex(index)}
+            className={`view-toggle-btn ${
+              viewMode === "carousel" ? "active" : ""
+            }`}
+            onClick={() => setViewMode("carousel")}
+          >
+            Carousel
+          </button>
+          <button
+            type="button"
+            className={`view-toggle-btn ${viewMode === "grid" ? "active" : ""}`}
+            onClick={() => setViewMode("grid")}
+          >
+            Grid
+          </button>
+        </div>
+      ) : null}
+
+      {viewMode === "grid" ? (
+        <div
+          className="photo-grid"
+          ref={containerRef}
+          style={{ height: layout.totalHeight, opacity: ready ? 1 : 0 }}
+        >
+          {photos.map((photo, index) => (
+            <button
+              key={photo._id}
+              type="button"
+              className="photo-card"
+              onClick={() => setSelectedIndex(index)}
+              onContextMenu={(event) => event.preventDefault()}
+              style={{
+                position: "absolute",
+                left: layout.positions[index]?.x ?? 0,
+                top: layout.positions[index]?.y ?? 0,
+                width: itemWidth || "100%",
+              }}
+            >
+              {(() => {
+                if (!photo.image) return null;
+                const builder = urlFor(photo.image);
+                if (!builder) return null;
+                const dims = getImageDimensions(photo.image);
+                const width = dims?.width ?? 1200;
+                const height = dims?.height ?? 1500;
+                const src = builder
+                  .width(2000)
+                  .height(Math.round((2000 * height) / width))
+                  .fit("max")
+                  .auto("format")
+                  .quality(80)
+                  .url();
+                if (!src) return null;
+                return (
+                  <Image
+                    src={src}
+                    alt={photo.title || "Photography"}
+                    width={width}
+                    height={height}
+                    sizes="(max-width: 768px) 92vw, (max-width: 1200px) 45vw, 30vw"
+                    priority={false}
+                  />
+                );
+              })()}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="photo-carousel" aria-label="Carousel view">
+          <button
+            type="button"
+            className="carousel-nav left"
+            onClick={goPrev}
+            aria-label="Previous photo"
+          >
+            {"<"}
+          </button>
+          <button
+            type="button"
+            className="carousel-nav right"
+            onClick={goNext}
+            aria-label="Next photo"
+          >
+            {">"}
+          </button>
+          <button
+            type="button"
+            className="photo-carousel-item"
             onContextMenu={(event) => event.preventDefault()}
-            style={{
-              position: "absolute",
-              left: layout.positions[index]?.x ?? 0,
-              top: layout.positions[index]?.y ?? 0,
-              width: itemWidth || "100%",
+            onTouchStart={(event) => {
+              swipeStartX.current = event.touches[0]?.clientX ?? null;
+            }}
+            onTouchEnd={(event) => {
+              if (swipeStartX.current === null) return;
+              const endX =
+                event.changedTouches[0]?.clientX ?? swipeStartX.current;
+              const delta = endX - swipeStartX.current;
+              if (Math.abs(delta) > 40) {
+                if (delta > 0) goPrev();
+                else goNext();
+              }
+              swipeStartX.current = null;
             }}
           >
-            {(() => {
-              if (!photo.image) return null;
-              const builder = urlFor(photo.image);
-              if (!builder) return null;
-              const dims = getImageDimensions(photo.image);
-              const width = dims?.width ?? 1200;
-              const height = dims?.height ?? 1500;
-              const src = builder
-                .width(2000)
-                .height(Math.round((2000 * height) / width))
-                .fit("max")
-                .auto("format")
-                .quality(80)
-                .url();
-              if (!src) return null;
-              return (
-                <Image
-                  src={src}
-                  alt={photo.title || "Photography"}
-                  width={width}
-                  height={height}
-                  sizes="(max-width: 768px) 92vw, (max-width: 1200px) 45vw, 30vw"
-                  priority={false}
-                />
-              );
-            })()}
+            {currentPhoto && currentSrc ? (
+              <Image
+                src={currentSrc}
+                alt={currentPhoto.title || "Photography"}
+                width={currentDims.width}
+                height={currentDims.height}
+                sizes="(max-width: 768px) 90vw, 72vw"
+                priority
+                draggable={false}
+              />
+            ) : null}
           </button>
-        ))}
-      </div>
+        </div>
+      )}
       {selectedIndex !== null ? (
         <Lightbox
           photos={photos}

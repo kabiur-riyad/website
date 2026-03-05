@@ -1,10 +1,9 @@
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { PortableText } from "@portabletext/react";
 import { sanityClient, hasSanityConfig } from "@/lib/sanity.client";
-import { projectBySlugQuery } from "@/lib/sanity.queries";
-import { Project } from "@/lib/types";
-import { getImageDimensions, urlFor } from "@/lib/sanity.image";
+import { projectBySlugQuery, siteSettingsQuery } from "@/lib/sanity.queries";
+import { Project, SiteSettings } from "@/lib/types";
+import PhotoGridClient from "@/components/PhotoGridClient";
 
 export const revalidate = 60;
 
@@ -30,11 +29,38 @@ export default async function CollectionDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const project = await getProject(slug);
+  const [project, settings] = await Promise.all([
+    getProject(slug),
+    hasSanityConfig && sanityClient
+      ? sanityClient.fetch<SiteSettings | null>(siteSettingsQuery)
+      : Promise.resolve(null),
+  ]);
 
   if (!project) {
     notFound();
   }
+
+  const mergedPhotos = [...(project.photos ?? []), ...(project.relatedPhotos ?? [])];
+  const seen = new Set<string>();
+  const collectionPhotos = mergedPhotos
+    .filter((photo) => {
+      const ref = photo.image?.asset?._ref;
+      if (!ref) return false;
+      if (seen.has(ref)) return false;
+      seen.add(ref);
+      return true;
+    })
+    .map((photo, index) => ({
+      _id:
+        "_id" in photo && photo._id
+          ? photo._id
+          : "_key" in photo
+            ? photo._key
+            : `${project._id}-${index}`,
+      title: "title" in photo ? photo.title : undefined,
+      caption: photo.caption,
+      image: photo.image,
+    }));
 
   return (
     <main className="page">
@@ -48,73 +74,21 @@ export default async function CollectionDetailPage({
               </div>
             ) : null}
           </div>
-          {project.coverImage ? (
-            <div className="series-card">
-              {(() => {
-                const builder = urlFor(project.coverImage);
-                if (!builder) return null;
-                const dims = getImageDimensions(project.coverImage);
-                const width = dims?.width ?? 1600;
-                const height = dims?.height ?? 1100;
-                const src = builder
-                  .width(2000)
-                  .height(Math.round((2000 * height) / width))
-                  .fit("max")
-                  .auto("format")
-                  .quality(85)
-                  .url();
-                if (!src) return null;
-                return (
-                  <Image
-                    src={src}
-                    alt={project.title}
-                    width={width}
-                    height={height}
-                    sizes="92vw"
-                  />
-                );
-              })()}
-            </div>
-          ) : null}
         </section>
 
         <section className="photo-series">
-          {[...(project.photos ?? []), ...(project.relatedPhotos ?? [])].map(
-            (photo, index) => (
-            <div
-              className="series-card"
-              key={"_key" in photo ? photo._key : photo._id ?? index}
-            >
-              {(() => {
-                if (!photo.image) return null;
-                const builder = urlFor(photo.image);
-                if (!builder) return null;
-                const dims = getImageDimensions(photo.image);
-                const width = dims?.width ?? 1500;
-                const height = dims?.height ?? 2000;
-                const src = builder
-                  .width(2000)
-                  .height(Math.round((2000 * height) / width))
-                  .fit("max")
-                  .auto("format")
-                  .quality(85)
-                  .url();
-                if (!src) return null;
-                return (
-                  <Image
-                    src={src}
-                    alt={photo.caption || project.title}
-                    width={width}
-                    height={height}
-                    sizes="92vw"
-                  />
-                );
-              })()}
-              {photo.caption ? (
-                <div className="photo-caption">{photo.caption}</div>
-              ) : null}
-            </div>
-            )
+          {collectionPhotos.length === 0 ? (
+            <p>No photos in this collection yet.</p>
+          ) : (
+            <PhotoGridClient
+              photos={collectionPhotos}
+              defaultViewMode={
+                settings?.collectionDefaultViewMode === "carousel"
+                  ? "carousel"
+                  : "grid"
+              }
+              hideViewToggle
+            />
           )}
         </section>
       </div>

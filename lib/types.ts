@@ -49,6 +49,9 @@ export type SiteSettings = {
   favicon?: SanityImage;
   email?: string;
   instagramUrl?: string;
+  theme?: "default" | "white" | "dark";
+  backgroundColor?: string;
   contactBlurb?: any;
   contactFormEnabled?: boolean;
+  collectionDefaultViewMode?: "grid" | "carousel";
 };

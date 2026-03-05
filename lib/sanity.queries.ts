@@ -82,7 +82,10 @@ export const siteSettingsQuery = `
     },
     email,
     instagramUrl,
+    theme,
+    backgroundColor,
     contactBlurb,
-    contactFormEnabled
+    contactFormEnabled,
+    collectionDefaultViewMode
   }
 `;
