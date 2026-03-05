@@ -13,11 +13,7 @@ export default function ContactForm({ email, enabled }: Props) {
   );
 
   if (!enabled) {
-    return email ? (
-      <p>
-        Prefer email? Reach me at <a href={`mailto:${email}`}>{email}</a>.
-      </p>
-    ) : null;
+    return null;
   }
 
   return (
