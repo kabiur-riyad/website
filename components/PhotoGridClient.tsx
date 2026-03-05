@@ -34,11 +34,20 @@ export default function PhotoGridClient({ photos }: Props) {
     return 1;
   }, [containerWidth]);
 
-  const gap = 18;
+  const gap = useMemo(() => {
+    if (containerWidth >= 1200) return 28;
+    if (containerWidth >= 800) return 22;
+    return 24;
+  }, [containerWidth]);
+  const sideInset = useMemo(() => {
+    if (containerWidth >= 1200) return 0;
+    if (containerWidth >= 800) return 6;
+    return 12;
+  }, [containerWidth]);
   const itemWidth = useMemo(() => {
     if (!containerWidth) return 0;
-    return (containerWidth - gap * (columns - 1)) / columns;
-  }, [columns, containerWidth]);
+    return (containerWidth - sideInset * 2 - gap * (columns - 1)) / columns;
+  }, [columns, containerWidth, gap, sideInset]);
 
   const layout = useMemo(() => {
     if (!itemWidth) return { positions: [], totalHeight: 0 };
@@ -49,14 +58,14 @@ export default function PhotoGridClient({ photos }: Props) {
       const height = dims?.height ?? 1500;
       const renderedHeight = Math.round((itemWidth * height) / width);
       const col = colHeights.indexOf(Math.min(...colHeights));
-      const x = col * (itemWidth + gap);
+      const x = sideInset + col * (itemWidth + gap);
       const y = colHeights[col];
       colHeights[col] += renderedHeight + gap;
       return { x, y };
     });
     const totalHeight = colHeights.length ? Math.max(...colHeights) : 0;
     return { positions, totalHeight };
-  }, [photos, columns, itemWidth]);
+  }, [photos, columns, gap, itemWidth, sideInset]);
 
   useEffect(() => {
     if (itemWidth && layout.positions.length === photos.length) {
