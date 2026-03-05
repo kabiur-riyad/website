@@ -37,7 +37,7 @@ export default function PhotoGridClient({ photos }: Props) {
   const gap = useMemo(() => {
     if (containerWidth >= 1200) return 28;
     if (containerWidth >= 800) return 22;
-    return 24;
+    return 28;
   }, [containerWidth]);
   const sideInset = useMemo(() => {
     if (containerWidth >= 1200) return 0;
