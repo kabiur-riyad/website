@@ -24,24 +24,26 @@ export default function PhotoGridClient({
   const [containerWidth, setContainerWidth] = useState(0);
   const [ready, setReady] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const swipeStartX = useRef<number | null>(null);
   const VIEW_MODE_KEY = "photo_view_mode";
 
   useEffect(() => {
-    if (hideViewToggle) {
-      setViewMode(defaultViewMode);
-      return;
-    }
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || hideViewToggle) return;
     const saved = window.localStorage.getItem(VIEW_MODE_KEY);
     if (saved === "grid" || saved === "carousel") {
       setViewMode(saved);
     }
-  }, [defaultViewMode, hideViewToggle]);
+  }, [mounted, defaultViewMode, hideViewToggle]);
 
   useEffect(() => {
-    if (hideViewToggle) return;
+    if (!mounted || hideViewToggle) return;
     window.localStorage.setItem(VIEW_MODE_KEY, viewMode);
-  }, [hideViewToggle, viewMode]);
+  }, [mounted, hideViewToggle, viewMode]);
 
   const goPrev = useCallback(() => {
     if (isTransitioning) return;

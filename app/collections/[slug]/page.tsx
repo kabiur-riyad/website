@@ -102,21 +102,16 @@ export default async function CollectionDetailPage({
           </div>
         </section>
 
-        <section className="photo-series">
-          {collectionPhotos.length === 0 ? (
+        {collectionPhotos.length === 0 ? (
+          <section className="photo-series">
             <p>No photos in this collection yet.</p>
-          ) : (
-            <PhotoGridClient
-              photos={collectionPhotos}
-              defaultViewMode={
-                settings?.collectionDefaultViewMode === "carousel"
-                  ? "carousel"
-                  : "grid"
-              }
-              hideViewToggle
-            />
-          )}
-        </section>
+          </section>
+        ) : (
+          <PhotoGridClient
+            photos={collectionPhotos}
+            defaultViewMode="carousel"
+          />
+        )}
       </div>
     </main>
   );

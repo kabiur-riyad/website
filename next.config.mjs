@@ -8,6 +8,9 @@ const nextConfig = {
       },
     ],
   },
+  experimental: {
+    serverComponentsExternalPackages: [],
+  },
   webpack: (config) => {
     config.watchOptions = {
       ...(config.watchOptions || {}),

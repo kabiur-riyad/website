@@ -54,5 +54,4 @@ export type SiteSettings = {
   ogDescription?: string;
   contactBlurb?: any;
   contactFormEnabled?: boolean;
-  collectionDefaultViewMode?: "grid" | "carousel";
 };

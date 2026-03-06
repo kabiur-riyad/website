@@ -83,20 +83,5 @@ export default defineType({
       type: "boolean",
       initialValue: false,
     }),
-    defineField({
-      name: "collectionDefaultViewMode",
-      title: "Collection View Mode",
-      type: "string",
-      initialValue: "grid",
-      options: {
-        list: [
-          { title: "Grid", value: "grid" },
-          { title: "Carousel", value: "carousel" },
-        ],
-        layout: "radio",
-      },
-      description:
-        "Default view mode for photos inside each collection page.",
-    }),
   ],
 });

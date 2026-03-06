@@ -99,8 +99,7 @@ export const siteSettingsQuery = `
     backgroundColor,
     ogDescription,
     contactBlurb,
-    contactFormEnabled,
-    collectionDefaultViewMode
+    contactFormEnabled
   }
 `;
 export const sitemapDataQuery = `

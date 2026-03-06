@@ -180,7 +180,6 @@ img {
   transition: color 0.2s ease;
 }
 
-.view-toggle-icon:hover,
 .view-toggle-icon.active {
   color: #3b82f6;
 }
