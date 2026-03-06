@@ -23,6 +23,7 @@ export default function PhotoGridClient({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [ready, setReady] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const swipeStartX = useRef<number | null>(null);
   const VIEW_MODE_KEY = "photo_view_mode";
 
@@ -43,12 +44,18 @@ export default function PhotoGridClient({
   }, [hideViewToggle, viewMode]);
 
   const goPrev = useCallback(() => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
     setCarouselIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
-  }, [photos.length]);
+    setTimeout(() => setIsTransitioning(false), 300);
+  }, [photos.length, isTransitioning]);
 
   const goNext = useCallback(() => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
     setCarouselIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
-  }, [photos.length]);
+    setTimeout(() => setIsTransitioning(false), 300);
+  }, [photos.length, isTransitioning]);
 
   useEffect(() => {
     if (viewMode !== "grid") return;
@@ -179,24 +186,25 @@ export default function PhotoGridClient({
   return (
     <>
       {!hideViewToggle ? (
-        <div className="view-toggle" role="tablist" aria-label="View mode">
-          <button
-            type="button"
-            className={`view-toggle-btn ${
-              viewMode === "carousel" ? "active" : ""
-            }`}
-            onClick={() => setViewMode("carousel")}
-          >
-            Carousel
-          </button>
-          <button
-            type="button"
-            className={`view-toggle-btn ${viewMode === "grid" ? "active" : ""}`}
-            onClick={() => setViewMode("grid")}
-          >
-            Grid
-          </button>
-        </div>
+        <button
+          type="button"
+          className={`view-toggle-icon ${viewMode === "grid" ? "active" : ""}`}
+          onClick={() => setViewMode(viewMode === "grid" ? "carousel" : "grid")}
+          aria-label={viewMode === "grid" ? "Switch to carousel view" : "Switch to grid view"}
+          title={viewMode === "grid" ? "Carousel view" : "Grid view"}
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="6" cy="6" r="1.5" />
+            <circle cx="12" cy="6" r="1.5" />
+            <circle cx="18" cy="6" r="1.5" />
+            <circle cx="6" cy="12" r="1.5" />
+            <circle cx="12" cy="12" r="1.5" />
+            <circle cx="18" cy="12" r="1.5" />
+            <circle cx="6" cy="18" r="1.5" />
+            <circle cx="12" cy="18" r="1.5" />
+            <circle cx="18" cy="18" r="1.5" />
+          </svg>
+        </button>
       ) : null}
 
       {viewMode === "grid" ? (
@@ -256,6 +264,7 @@ export default function PhotoGridClient({
             className="carousel-nav left"
             onClick={goPrev}
             aria-label="Previous photo"
+            disabled={isTransitioning}
           >
             {"<"}
           </button>
@@ -264,6 +273,7 @@ export default function PhotoGridClient({
             className="carousel-nav right"
             onClick={goNext}
             aria-label="Next photo"
+            disabled={isTransitioning}
           >
             {">"}
           </button>
@@ -275,7 +285,7 @@ export default function PhotoGridClient({
               swipeStartX.current = event.touches[0]?.clientX ?? null;
             }}
             onTouchEnd={(event) => {
-              if (swipeStartX.current === null) return;
+              if (swipeStartX.current === null || isTransitioning) return;
               const endX =
                 event.changedTouches[0]?.clientX ?? swipeStartX.current;
               const delta = endX - swipeStartX.current;
