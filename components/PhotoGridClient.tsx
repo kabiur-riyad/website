@@ -283,20 +283,6 @@ export default function PhotoGridClient({
             type="button"
             className="photo-carousel-item"
             onContextMenu={(event) => event.preventDefault()}
-            onTouchStart={(event) => {
-              swipeStartX.current = event.touches[0]?.clientX ?? null;
-            }}
-            onTouchEnd={(event) => {
-              if (swipeStartX.current === null || isTransitioning) return;
-              const endX =
-                event.changedTouches[0]?.clientX ?? swipeStartX.current;
-              const delta = endX - swipeStartX.current;
-              if (Math.abs(delta) > 40) {
-                if (delta > 0) goPrev();
-                else goNext();
-              }
-              swipeStartX.current = null;
-            }}
           >
             {currentPhoto && currentSrc ? (
               <Image
@@ -307,6 +293,20 @@ export default function PhotoGridClient({
                 sizes="(max-width: 768px) 90vw, 72vw"
                 priority
                 draggable={false}
+                onTouchStart={(event) => {
+                  swipeStartX.current = event.touches[0]?.clientX ?? null;
+                }}
+                onTouchEnd={(event) => {
+                  if (swipeStartX.current === null || isTransitioning) return;
+                  const endX =
+                    event.changedTouches[0]?.clientX ?? swipeStartX.current;
+                  const delta = endX - swipeStartX.current;
+                  if (Math.abs(delta) > 40) {
+                    if (delta > 0) goPrev();
+                    else goNext();
+                  }
+                  swipeStartX.current = null;
+                }}
               />
             ) : null}
           </button>
