@@ -109,7 +109,7 @@ export default async function CollectionDetailPage({
         ) : (
           <PhotoGridClient
             photos={collectionPhotos}
-            defaultViewMode="carousel"
+            defaultViewMode={settings?.defaultViewMode || "carousel"}
           />
         )}
       </div>

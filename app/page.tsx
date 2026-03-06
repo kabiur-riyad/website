@@ -25,7 +25,7 @@ export default async function HomePage() {
       <div className="container">
         {hasSanityConfig ? (
           <>
-            <PhotoGridClient photos={photos} />
+            <PhotoGridClient photos={photos} defaultViewMode={settings?.defaultViewMode || "carousel"} />
             {settings?.instagramUrl ? (
               <div className="footer-social">
                 <a
