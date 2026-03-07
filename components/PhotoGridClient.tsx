@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CSSProperties, TouchEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { Photo } from "@/lib/types";
 import { getImageDimensions, urlFor } from "@/lib/sanity.image";
@@ -12,21 +12,40 @@ type Props = {
   hideViewToggle?: boolean;
 };
 
+type CarouselTransition = {
+  from: number;
+  to: number;
+  direction: "left" | "right";
+  mode: "auto" | "resume";
+  durationMs: number;
+  startOffset: number;
+};
+
 export default function PhotoGridClient({
   photos,
   defaultViewMode = "carousel",
   hideViewToggle = false,
 }: Props) {
+  const CAROUSEL_TRANSITION_MS = 360;
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "carousel">(defaultViewMode);
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const [transition, setTransition] = useState<CarouselTransition | null>(null);
+  const [resumePhase, setResumePhase] = useState<"idle" | "running">("idle");
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const carouselRef = useRef<HTMLButtonElement | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [carouselWidth, setCarouselWidth] = useState(0);
   const [ready, setReady] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const swipeStartX = useRef<number | null>(null);
+  const swipeStartY = useRef<number | null>(null);
+  const swipeCurrentX = useRef<number | null>(null);
+  const dragModeRef = useRef<"pending" | "horizontal" | "vertical">("pending");
   const VIEW_MODE_KEY = "photo_view_mode";
+  const isTransitioning = transition !== null;
 
   useEffect(() => {
     setMounted(true);
@@ -45,19 +64,55 @@ export default function PhotoGridClient({
     window.localStorage.setItem(VIEW_MODE_KEY, viewMode);
   }, [mounted, hideViewToggle, viewMode]);
 
+  useEffect(() => {
+    if (!transition) return;
+    if (transition.mode === "resume" && resumePhase === "idle") {
+      const rafId = window.requestAnimationFrame(() => setResumePhase("running"));
+      return () => window.cancelAnimationFrame(rafId);
+    }
+    const timeoutId = window.setTimeout(() => {
+      setCarouselIndex(transition.to);
+      setTransition(null);
+      setResumePhase("idle");
+    }, transition.durationMs);
+    return () => window.clearTimeout(timeoutId);
+  }, [transition, resumePhase]);
+
+  useEffect(() => {
+    if (!carouselRef.current || viewMode !== "carousel") return;
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) setCarouselWidth(entry.contentRect.width);
+    });
+    observer.observe(carouselRef.current);
+    return () => observer.disconnect();
+  }, [viewMode]);
+
   const goPrev = useCallback(() => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setCarouselIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
-    setTimeout(() => setIsTransitioning(false), 300);
-  }, [photos.length, isTransitioning]);
+    if (isTransitioning || isDragging || photos.length < 2) return;
+    const prevIndex = carouselIndex === 0 ? photos.length - 1 : carouselIndex - 1;
+    setTransition({
+      from: carouselIndex,
+      to: prevIndex,
+      direction: "left",
+      mode: "auto",
+      durationMs: CAROUSEL_TRANSITION_MS,
+      startOffset: 0,
+    });
+  }, [carouselIndex, photos.length, isTransitioning, isDragging, CAROUSEL_TRANSITION_MS]);
 
   const goNext = useCallback(() => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setCarouselIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
-    setTimeout(() => setIsTransitioning(false), 300);
-  }, [photos.length, isTransitioning]);
+    if (isTransitioning || isDragging || photos.length < 2) return;
+    const nextIndex = carouselIndex === photos.length - 1 ? 0 : carouselIndex + 1;
+    setTransition({
+      from: carouselIndex,
+      to: nextIndex,
+      direction: "right",
+      mode: "auto",
+      durationMs: CAROUSEL_TRANSITION_MS,
+      startOffset: 0,
+    });
+  }, [carouselIndex, photos.length, isTransitioning, isDragging, CAROUSEL_TRANSITION_MS]);
 
   useEffect(() => {
     if (viewMode !== "grid") return;
@@ -137,33 +192,72 @@ export default function PhotoGridClient({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [viewMode, selectedIndex, goPrev, goNext]);
 
-  const currentPhoto = photos[carouselIndex];
+  useEffect(() => {
+    if (!transition) {
+      setResumePhase("idle");
+      return;
+    }
+    setIsDragging(false);
+    setDragOffset(0);
+    dragModeRef.current = "pending";
+    setResumePhase(transition.mode === "resume" ? "idle" : "running");
+  }, [transition]);
 
-  const currentDims = useMemo(() => {
-    if (!currentPhoto?.image) return { width: 1200, height: 1500 };
-    const dims = getImageDimensions(currentPhoto.image);
-    return { width: dims?.width ?? 1200, height: dims?.height ?? 1500 };
-  }, [currentPhoto]);
+  const buildCarouselSlide = useCallback(
+    (index: number) => {
+      const photo = photos[index];
+      if (!photo?.image) return null;
+      const builder = urlFor(photo.image);
+      if (!builder) return null;
+      const dims = getImageDimensions(photo.image);
+      const width = dims?.width ?? 1200;
+      const height = dims?.height ?? 1500;
+      const src =
+        builder
+          .width(2200)
+          .height(Math.round((2200 * height) / width))
+          .fit("max")
+          .auto("format")
+          .quality(82)
+          .url() || null;
+      if (!src) return null;
+      return {
+        id: photo._id,
+        title: photo.title,
+        src,
+        width,
+        height,
+      };
+    },
+    [photos]
+  );
 
-  const currentSrc = useMemo(() => {
-    if (!currentPhoto?.image) return null;
-    const builder = urlFor(currentPhoto.image);
-    if (!builder) return null;
-    return (
-      builder
-        .width(2200)
-        .height(Math.round((2200 * currentDims.height) / currentDims.width))
-        .fit("max")
-        .auto("format")
-        .quality(82)
-        .url() || null
-    );
-  }, [currentPhoto, currentDims.height, currentDims.width]);
+  const settledSlide = useMemo(() => buildCarouselSlide(carouselIndex), [buildCarouselSlide, carouselIndex]);
+  const prevCarouselIndex = carouselIndex === 0 ? photos.length - 1 : carouselIndex - 1;
+  const nextCarouselIndex = carouselIndex === photos.length - 1 ? 0 : carouselIndex + 1;
+  const dragNeighborIndex = dragOffset < 0 ? nextCarouselIndex : prevCarouselIndex;
+  const dragNeighborSlide = useMemo(() => {
+    if (!isDragging || dragOffset === 0 || photos.length < 2) return null;
+    return buildCarouselSlide(dragNeighborIndex);
+  }, [isDragging, dragOffset, photos.length, buildCarouselSlide, dragNeighborIndex]);
+  const fromSlide = useMemo(() => {
+    if (!transition) return null;
+    return buildCarouselSlide(transition.from);
+  }, [buildCarouselSlide, transition]);
+  const toSlide = useMemo(() => {
+    if (!transition) return null;
+    return buildCarouselSlide(transition.to);
+  }, [buildCarouselSlide, transition]);
+
+  const preloadCenterIndex = transition?.to ?? carouselIndex;
+  const dragTrackWidth = carouselWidth || (typeof window !== "undefined" ? window.innerWidth : 0);
+  const dragGapPx = dragTrackWidth <= 720 ? 32 : 56;
+  const transitionDistancePx = dragTrackWidth + dragGapPx;
 
   useEffect(() => {
     if (viewMode !== "carousel" || !photos.length) return;
-    const prevIndex = carouselIndex === 0 ? photos.length - 1 : carouselIndex - 1;
-    const nextIndex = carouselIndex === photos.length - 1 ? 0 : carouselIndex + 1;
+    const prevIndex = preloadCenterIndex === 0 ? photos.length - 1 : preloadCenterIndex - 1;
+    const nextIndex = preloadCenterIndex === photos.length - 1 ? 0 : preloadCenterIndex + 1;
     const neighbors = [photos[prevIndex], photos[nextIndex]];
     neighbors.forEach((photo) => {
       if (!photo?.image) return;
@@ -183,7 +277,142 @@ export default function PhotoGridClient({
       const preloader = new window.Image();
       preloader.src = src;
     });
-  }, [viewMode, carouselIndex, photos]);
+  }, [viewMode, preloadCenterIndex, photos]);
+
+  const renderSlide = useCallback(
+    (
+      slide: { id: string; title?: string | null; src: string; width: number; height: number } | null,
+      className: string,
+      priority = false,
+      style?: CSSProperties
+    ) => {
+      if (!slide) return null;
+      return (
+        <div className={className} style={style}>
+          <Image
+            key={`${slide.id}-${className}`}
+            src={slide.src}
+            alt={slide.title || "Photography"}
+            width={slide.width}
+            height={slide.height}
+            sizes="(max-width: 768px) 90vw, 72vw"
+            priority={priority}
+            draggable={false}
+          />
+        </div>
+      );
+    },
+    []
+  );
+
+  const onCarouselTouchStart = (event: TouchEvent<HTMLButtonElement>) => {
+    if (isTransitioning || photos.length < 2) return;
+    swipeStartX.current = event.touches[0]?.clientX ?? null;
+    swipeStartY.current = event.touches[0]?.clientY ?? null;
+    swipeCurrentX.current = swipeStartX.current;
+    dragModeRef.current = "pending";
+    setIsDragging(false);
+    setDragOffset(0);
+  };
+
+  const onCarouselTouchMove = (event: TouchEvent<HTMLButtonElement>) => {
+    if (swipeStartX.current === null || isTransitioning || photos.length < 2) return;
+    const point = event.touches[0];
+    if (!point) return;
+    const deltaX = point.clientX - swipeStartX.current;
+    const deltaY = (swipeStartY.current ?? point.clientY) - point.clientY;
+
+    if (dragModeRef.current === "pending") {
+      if (Math.abs(deltaX) < 8 && Math.abs(deltaY) < 8) return;
+      dragModeRef.current = Math.abs(deltaX) > Math.abs(deltaY) ? "horizontal" : "vertical";
+    }
+
+    if (dragModeRef.current !== "horizontal") return;
+    event.preventDefault();
+    const width = dragTrackWidth || 1;
+    const limit = width * 0.98;
+    const clamped = Math.max(-limit, Math.min(limit, deltaX));
+    swipeCurrentX.current = point.clientX;
+    setIsDragging(true);
+    setDragOffset(clamped);
+  };
+
+  const onCarouselTouchEnd = (event: TouchEvent<HTMLButtonElement>) => {
+    if (swipeStartX.current === null || isTransitioning || photos.length < 2) return;
+    if (dragModeRef.current !== "horizontal") {
+      setIsDragging(false);
+      setDragOffset(0);
+      swipeStartX.current = null;
+      swipeStartY.current = null;
+      swipeCurrentX.current = null;
+      dragModeRef.current = "pending";
+      return;
+    }
+
+    const endX = event.changedTouches[0]?.clientX ?? swipeCurrentX.current ?? swipeStartX.current;
+    const finalDelta = endX - swipeStartX.current;
+    const width = dragTrackWidth || 1;
+    const threshold = Math.max(52, width * 0.18);
+    const shouldNavigate = Math.abs(finalDelta) >= threshold;
+    const direction = finalDelta > 0 ? "left" : "right";
+    const transitionDistance = transitionDistancePx;
+    const targetOffset = direction === "right" ? -transitionDistance : transitionDistance;
+    const remainingDistance = Math.max(0, Math.abs(targetOffset - finalDelta));
+    const durationMs = Math.max(
+      120,
+      Math.round((CAROUSEL_TRANSITION_MS * remainingDistance) / Math.max(1, transitionDistance))
+    );
+
+    setIsDragging(false);
+    setDragOffset(0);
+    swipeStartX.current = null;
+    swipeStartY.current = null;
+    swipeCurrentX.current = null;
+    dragModeRef.current = "pending";
+
+    if (!shouldNavigate) return;
+    if (direction === "left") {
+      const prevIndex = carouselIndex === 0 ? photos.length - 1 : carouselIndex - 1;
+      setTransition({
+        from: carouselIndex,
+        to: prevIndex,
+        direction: "left",
+        mode: "resume",
+        durationMs,
+        startOffset: finalDelta,
+      });
+      return;
+    }
+    const nextIndex = carouselIndex === photos.length - 1 ? 0 : carouselIndex + 1;
+    setTransition({
+      from: carouselIndex,
+      to: nextIndex,
+      direction: "right",
+      mode: "resume",
+      durationMs,
+      startOffset: finalDelta,
+    });
+  };
+
+  const onCarouselTouchCancel = () => {
+    setIsDragging(false);
+    setDragOffset(0);
+    swipeStartX.current = null;
+    swipeStartY.current = null;
+    swipeCurrentX.current = null;
+    dragModeRef.current = "pending";
+  };
+
+  const isResumeTransition = transition?.mode === "resume";
+  const resumeFromStart = transition?.startOffset ?? 0;
+  const resumeFromEnd = transition?.direction === "right" ? -transitionDistancePx : transitionDistancePx;
+  const resumeToStart =
+    (transition?.direction === "right" ? transitionDistancePx : -transitionDistancePx) + resumeFromStart;
+  const resumeDurationMs = transition?.durationMs ?? CAROUSEL_TRANSITION_MS;
+  const resumeSlideStyle: CSSProperties =
+    isResumeTransition && resumePhase === "running"
+      ? { transition: `transform ${resumeDurationMs}ms ease` }
+      : { transition: "none" };
 
   return (
     <>
@@ -282,33 +511,60 @@ export default function PhotoGridClient({
           <button
             type="button"
             className="photo-carousel-item"
+            ref={carouselRef}
             onContextMenu={(event) => event.preventDefault()}
+            onTouchStart={onCarouselTouchStart}
+            onTouchMove={onCarouselTouchMove}
+            onTouchEnd={onCarouselTouchEnd}
+            onTouchCancel={onCarouselTouchCancel}
           >
-            {currentPhoto && currentSrc ? (
-              <Image
-                src={currentSrc}
-                alt={currentPhoto.title || "Photography"}
-                width={currentDims.width}
-                height={currentDims.height}
-                sizes="(max-width: 768px) 90vw, 72vw"
-                priority
-                draggable={false}
-                onTouchStart={(event) => {
-                  swipeStartX.current = event.touches[0]?.clientX ?? null;
-                }}
-                onTouchEnd={(event) => {
-                  if (swipeStartX.current === null || isTransitioning) return;
-                  const endX =
-                    event.changedTouches[0]?.clientX ?? swipeStartX.current;
-                  const delta = endX - swipeStartX.current;
-                  if (Math.abs(delta) > 40) {
-                    if (delta > 0) goPrev();
-                    else goNext();
-                  }
-                  swipeStartX.current = null;
-                }}
-              />
-            ) : null}
+            {isDragging && dragNeighborSlide && settledSlide ? (
+              <>
+                {renderSlide(settledSlide, "carousel-slide carousel-slide-active", true, {
+                  transform: `translateX(${dragOffset}px)`,
+                  transition: "none",
+                })}
+                {renderSlide(dragNeighborSlide, "carousel-slide", true, {
+                  transform: `translateX(${
+                    (dragOffset < 0 ? 1 : -1) * (dragTrackWidth + dragGapPx) +
+                    dragOffset
+                  }px)`,
+                  transition: "none",
+                })}
+              </>
+            ) : transition && fromSlide && toSlide ? (
+              <>
+                {isResumeTransition
+                  ? renderSlide(fromSlide, "carousel-slide carousel-slide-from", true, {
+                      ...resumeSlideStyle,
+                      transform: `translateX(${
+                        resumePhase === "running" ? resumeFromEnd : resumeFromStart
+                      }px)`,
+                    })
+                  : renderSlide(
+                      fromSlide,
+                      `carousel-slide carousel-slide-from ${
+                        transition.direction === "right" ? "slide-out-left" : "slide-out-right"
+                      }`
+                    )}
+                {isResumeTransition
+                  ? renderSlide(toSlide, "carousel-slide carousel-slide-to", true, {
+                      ...resumeSlideStyle,
+                      transform: `translateX(${
+                        resumePhase === "running" ? 0 : resumeToStart
+                      }px)`,
+                    })
+                  : renderSlide(
+                      toSlide,
+                      `carousel-slide carousel-slide-to ${
+                        transition.direction === "right" ? "slide-in-right" : "slide-in-left"
+                      }`,
+                      true
+                    )}
+              </>
+            ) : (
+              renderSlide(settledSlide, "carousel-slide carousel-slide-active", true)
+            )}
           </button>
         </div>
       )}

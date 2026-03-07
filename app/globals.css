@@ -198,7 +198,8 @@ img {
 }
 
 .photo-carousel-item {
-  width: min(72vw, 960px);
+  --carousel-slide-gap: 56px;
+  width: 100%;
   border: none;
   background: transparent;
   padding: 0;
@@ -207,6 +208,10 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
+  min-height: calc(100vh - 220px);
+  touch-action: pan-y;
 }
 
 .photo-carousel-item img {
@@ -214,13 +219,78 @@ img {
   height: calc(100vh - 220px);
   object-fit: contain;
   display: block;
-  max-width: 100%;
+  max-width: min(72vw, 960px);
   margin: 0 auto;
   user-select: none;
   -webkit-user-select: none;
   -webkit-user-drag: none;
   cursor: pointer !important;
   touch-action: pan-y;
+}
+
+.carousel-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+
+.carousel-slide-active {
+  position: relative;
+}
+
+.slide-out-left {
+  animation: carousel-slide-out-left 360ms ease both;
+}
+
+.slide-in-right {
+  animation: carousel-slide-in-right 360ms ease both;
+}
+
+.slide-out-right {
+  animation: carousel-slide-out-right 360ms ease both;
+}
+
+.slide-in-left {
+  animation: carousel-slide-in-left 360ms ease both;
+}
+
+@keyframes carousel-slide-out-left {
+  from {
+    transform: translateX(0%);
+  }
+  to {
+    transform: translateX(calc(-100% - var(--carousel-slide-gap)));
+  }
+}
+
+@keyframes carousel-slide-in-right {
+  from {
+    transform: translateX(calc(100% + var(--carousel-slide-gap)));
+  }
+  to {
+    transform: translateX(0%);
+  }
+}
+
+@keyframes carousel-slide-out-right {
+  from {
+    transform: translateX(0%);
+  }
+  to {
+    transform: translateX(calc(100% + var(--carousel-slide-gap)));
+  }
+}
+
+@keyframes carousel-slide-in-left {
+  from {
+    transform: translateX(calc(-100% - var(--carousel-slide-gap)));
+  }
+  to {
+    transform: translateX(0%);
+  }
 }
 
 .photo-carousel-item:disabled {
@@ -640,27 +710,18 @@ img {
   }
 
   .photo-carousel-item {
+    --carousel-slide-gap: 32px;
     width: 100%;
+    min-height: calc(100vh - 260px);
   }
 
   .photo-carousel-item img {
+    max-width: 100%;
     height: calc(100vh - 260px);
   }
 
   .carousel-nav {
-    top: auto;
-    bottom: -44px;
-    transform: none;
-    font-size: 1.2rem;
-    padding: 4px 6px;
-  }
-
-  .carousel-nav.left {
-    left: 0;
-  }
-
-  .carousel-nav.right {
-    right: 0;
+    display: none;
   }
 
   .collection-carousel {
