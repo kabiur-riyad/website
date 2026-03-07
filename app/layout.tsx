@@ -59,7 +59,7 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${title}`,
     },
     description,
-    keywords: ["photography", "portfolio", "street photography", "travel photography", "documentary"],
+    keywords: ["photography", "portfolio", "street photography", "travel photography", "documentary", "bangladesh", "dhaka"],
     authors: [{ name: "Kabiur Rahman Riyad" }],
     creator: "Kabiur Rahman Riyad",
     icons: icon ? { icon } : undefined,

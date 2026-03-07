@@ -97,5 +97,11 @@ export default defineType({
       },
       description: "Default view mode for photos on homepage and collection pages.",
     }),
+    defineField({
+      name: "person",
+      title: "Person Information (Schema.org)",
+      type: "person",
+      description: "Information about the person behind the site for structured data/SEO.",
+    }),
   ],
 });
