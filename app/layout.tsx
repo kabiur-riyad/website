@@ -106,52 +106,63 @@ export default async function RootLayout({
   let backgroundColor = "#f6f4f1";
   let theme: SiteSettings["theme"] = "default";
   let instagramUrl: string | undefined;
+  let personSchema = null;
+
   if (hasSanityConfig && sanityClient) {
     const settings = await sanityClient.fetch<SiteSettings | null>(
       siteSettingsQuery
     );
-    instagramUrl = settings?.instagramUrl;
-    if (
-      settings?.theme &&
-      (settings.theme === "default" ||
-        settings.theme === "white" ||
-        settings.theme === "dark")
-    ) {
-      theme = settings.theme;
-    }
-    if (
-      theme === "default" &&
-      settings?.backgroundColor &&
-      /^#([0-9a-fA-F]{6})$/.test(settings.backgroundColor)
-    ) {
-      backgroundColor = settings.backgroundColor;
-    }
-  }
-  const bodyStyle = theme === "default" ? { ["--paper" as any]: backgroundColor } : undefined;
 
-  let personSchema = null;
-  if (hasSanityConfig && sanityClient) {
-    const settings = await sanityClient.fetch<SiteSettings | null>(siteSettingsQuery);
-    if (settings?.person) {
+    if (settings) {
+      instagramUrl = settings.instagramUrl;
+
+      if (
+        settings.theme &&
+        (settings.theme === "default" ||
+          settings.theme === "white" ||
+          settings.theme === "dark")
+      ) {
+        theme = settings.theme;
+      }
+
+      if (
+        theme === "default" &&
+        settings.backgroundColor &&
+        /^#([0-9a-fA-F]{6})$/.test(settings.backgroundColor)
+      ) {
+        backgroundColor = settings.backgroundColor;
+      }
+
+      // Prepare Person JSON-LD
       const p = settings.person;
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://riyad.pro.bd";
+
       personSchema = {
         "@context": "https://schema.org",
         "@type": "Person",
-        name: p.name,
-        alternateName: p.alternateName,
-        jobTitle: p.jobTitle,
-        description: p.description,
-        url: p.url,
-        image: p.image ? urlFor(p.image)?.url() : undefined,
-        homeLocation: p.homeLocation?.name ? {
+        name: p?.name || "Kabiur Rahman Riyad",
+        alternateName: p?.alternateName || "কাবিউর রহমান রিয়াদ",
+        jobTitle: p?.jobTitle || "Street and Documentary Photographer",
+        description: p?.description || "Street, travel, and documentary photographer exploring everyday life and human stories.",
+        url: p?.url || baseUrl,
+        image: p?.image ? urlFor(p.image)?.url() : `${baseUrl}/portrait.jpg`,
+        homeLocation: {
           "@type": "Place",
-          name: p.homeLocation.name,
-        } : undefined,
-        knowsAbout: p.knowsAbout,
-        sameAs: p.sameAs,
+          name: p?.homeLocation?.name || "Bangladesh",
+        },
+        knowsAbout: p?.knowsAbout || [
+          "Street photography",
+          "Documentary photography",
+          "Travel photography",
+        ],
+        sameAs: p?.sameAs || [
+          "https://instagram.com/yourusername",
+        ],
       };
     }
   }
+
+  const bodyStyle = theme === "default" ? { ["--paper" as any]: backgroundColor } : undefined;
 
   return (
     <html lang="en" className={body.variable} data-theme={theme}>
