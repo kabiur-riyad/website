@@ -44,12 +44,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const ogImage = latestPhoto?.image
     ? urlFor(latestPhoto.image)
-        ?.width(1200)
-        ?.height(630)
-        ?.fit("crop")
-        ?.auto("format")
-        ?.quality(80)
-        ?.url()
+      ?.width(1200)
+      ?.height(630)
+      ?.fit("crop")
+      ?.auto("format")
+      ?.quality(80)
+      ?.url()
     : undefined;
 
   return {
@@ -72,13 +72,13 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       images: ogImage
         ? [
-            {
-              url: ogImage,
-              width: 1200,
-              height: 630,
-              alt: latestPhoto?.title || title,
-            },
-          ]
+          {
+            url: ogImage,
+            width: 1200,
+            height: 630,
+            alt: latestPhoto?.title || title,
+          },
+        ]
         : [],
     },
     twitter: {
@@ -128,8 +128,41 @@ export default async function RootLayout({
     }
   }
   const bodyStyle = theme === "default" ? { ["--paper" as any]: backgroundColor } : undefined;
+
+  let personSchema = null;
+  if (hasSanityConfig && sanityClient) {
+    const settings = await sanityClient.fetch<SiteSettings | null>(siteSettingsQuery);
+    if (settings?.person) {
+      const p = settings.person;
+      personSchema = {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        name: p.name,
+        alternateName: p.alternateName,
+        jobTitle: p.jobTitle,
+        description: p.description,
+        url: p.url,
+        image: p.image ? urlFor(p.image)?.url() : undefined,
+        homeLocation: p.homeLocation?.name ? {
+          "@type": "Place",
+          name: p.homeLocation.name,
+        } : undefined,
+        knowsAbout: p.knowsAbout,
+        sameAs: p.sameAs,
+      };
+    }
+  }
+
   return (
     <html lang="en" className={body.variable} data-theme={theme}>
+      <head>
+        {personSchema && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+          />
+        )}
+      </head>
       <body style={bodyStyle}>
         <Nav instagramUrl={instagramUrl} />
         {children}

@@ -41,6 +41,20 @@ export type Project = {
   relatedPhotos?: Photo[];
 };
 
+export type Person = {
+  name?: string;
+  alternateName?: string;
+  jobTitle?: string;
+  description?: string;
+  url?: string;
+  image?: SanityImage;
+  homeLocation?: {
+    name?: string;
+  };
+  knowsAbout?: string[];
+  sameAs?: string[];
+};
+
 export type SiteSettings = {
   _id: string;
   title?: string;
@@ -55,4 +69,5 @@ export type SiteSettings = {
   contactBlurb?: any;
   contactFormEnabled?: boolean;
   defaultViewMode?: "grid" | "carousel";
+  person?: Person;
 };

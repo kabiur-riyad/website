@@ -100,7 +100,16 @@ export const siteSettingsQuery = `
     ogDescription,
     contactBlurb,
     contactFormEnabled,
-    defaultViewMode
+    defaultViewMode,
+    person {
+      ...,
+      image {
+        ...,
+        "assetMeta": asset->{
+          metadata{dimensions}
+        }
+      }
+    }
   }
 `;
 export const sitemapDataQuery = `
