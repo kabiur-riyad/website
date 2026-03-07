@@ -495,7 +495,6 @@ export default function PhotoGridClient({
             className="carousel-nav left"
             onClick={goPrev}
             aria-label="Previous photo"
-            disabled={isTransitioning}
           >
             {"<"}
           </button>
@@ -504,7 +503,6 @@ export default function PhotoGridClient({
             className="carousel-nav right"
             onClick={goNext}
             aria-label="Next photo"
-            disabled={isTransitioning}
           >
             {">"}
           </button>
