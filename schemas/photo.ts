@@ -12,6 +12,13 @@ export default defineType({
       name: "title",
       title: "Title",
       type: "string",
+      initialValue: "Untitled",
+    }),
+    defineField({
+      name: "year",
+      title: "Year",
+      type: "number",
+      validation: (rule) => rule.integer().min(1800).max(2100),
     }),
     defineField({
       name: "caption",
