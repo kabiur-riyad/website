@@ -193,8 +193,16 @@ img {
   width: 100%;
   position: relative;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   padding: 8px 56px;
+}
+
+.photo-carousel-stage {
+  width: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
 }
 
 .photo-carousel-item {
@@ -235,6 +243,40 @@ img {
   align-items: center;
   justify-content: center;
   will-change: transform;
+}
+
+.photo-display-frame {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: min(72vw, 960px);
+  max-width: min(72vw, 960px);
+}
+
+.photo-media {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.photo-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+  padding-top: 12px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.photo-carousel-meta {
+  width: 100%;
+  max-width: none;
+  padding-left: 18px;
 }
 
 .carousel-slide-active {
@@ -306,6 +348,7 @@ img {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
+  z-index: 2;
   width: auto;
   height: auto;
   border-radius: 0;
@@ -629,6 +672,15 @@ img {
   width: 100%;
 }
 
+.lightbox-photo-frame {
+  width: 92vw;
+  max-width: 92vw;
+}
+
+.lightbox-photo-frame .photo-meta {
+  padding-left: 18px;
+}
+
 .lightbox-caption {
   color: #e6e2dd;
   font-size: 0.9rem;
@@ -719,7 +771,30 @@ img {
     height: calc(100vh - 260px);
   }
 
+  .photo-display-frame {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .photo-meta {
+    gap: 2px;
+    font-size: 0.74rem;
+    padding-top: 10px;
+  }
+
+  .photo-carousel-meta {
+    padding-left: 0;
+  }
+
+  .lightbox-photo-frame .photo-meta {
+    padding-left: 0;
+  }
+
   .carousel-nav {
+    display: none;
+  }
+
+  .lightbox-arrow {
     display: none;
   }
 

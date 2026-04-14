@@ -224,6 +224,7 @@ export default function PhotoGridClient({
       return {
         id: photo._id,
         title: photo.title,
+        year: photo.year,
         src,
         width,
         height,
@@ -281,7 +282,7 @@ export default function PhotoGridClient({
 
   const renderSlide = useCallback(
     (
-      slide: { id: string; title?: string | null; src: string; width: number; height: number } | null,
+      slide: { id: string; title?: string | null; year?: number; src: string; width: number; height: number } | null,
       className: string,
       priority = false,
       style?: CSSProperties
@@ -289,16 +290,20 @@ export default function PhotoGridClient({
       if (!slide) return null;
       return (
         <div className={className} style={style}>
-          <Image
-            key={`${slide.id}-${className}`}
-            src={slide.src}
-            alt={slide.title || "Photography"}
-            width={slide.width}
-            height={slide.height}
-            sizes="(max-width: 768px) 90vw, 72vw"
-            priority={priority}
-            draggable={false}
-          />
+          <div className="photo-display-frame">
+            <div className="photo-media">
+              <Image
+                key={`${slide.id}-${className}`}
+                src={slide.src}
+                alt={slide.title || "Photography"}
+                width={slide.width}
+                height={slide.height}
+                sizes="(max-width: 768px) 90vw, 72vw"
+                priority={priority}
+                draggable={false}
+              />
+            </div>
+          </div>
         </div>
       );
     },
@@ -490,80 +495,86 @@ export default function PhotoGridClient({
         </div>
       ) : (
         <div className="photo-carousel" aria-label="Carousel view">
-          <button
-            type="button"
-            className="carousel-nav left"
-            onClick={goPrev}
-            aria-label="Previous photo"
-          >
-            {"<"}
-          </button>
-          <button
-            type="button"
-            className="carousel-nav right"
-            onClick={goNext}
-            aria-label="Next photo"
-          >
-            {">"}
-          </button>
-          <button
-            type="button"
-            className="photo-carousel-item"
-            ref={carouselRef}
-            onContextMenu={(event) => event.preventDefault()}
-            onTouchStart={onCarouselTouchStart}
-            onTouchMove={onCarouselTouchMove}
-            onTouchEnd={onCarouselTouchEnd}
-            onTouchCancel={onCarouselTouchCancel}
-          >
-            {isDragging && dragNeighborSlide && settledSlide ? (
-              <>
-                {renderSlide(settledSlide, "carousel-slide carousel-slide-active", true, {
-                  transform: `translateX(${dragOffset}px)`,
-                  transition: "none",
-                })}
-                {renderSlide(dragNeighborSlide, "carousel-slide", true, {
-                  transform: `translateX(${
-                    (dragOffset < 0 ? 1 : -1) * (dragTrackWidth + dragGapPx) +
-                    dragOffset
-                  }px)`,
-                  transition: "none",
-                })}
-              </>
-            ) : transition && fromSlide && toSlide ? (
-              <>
-                {isResumeTransition
-                  ? renderSlide(fromSlide, "carousel-slide carousel-slide-from", true, {
-                      ...resumeSlideStyle,
-                      transform: `translateX(${
-                        resumePhase === "running" ? resumeFromEnd : resumeFromStart
-                      }px)`,
-                    })
-                  : renderSlide(
-                      fromSlide,
-                      `carousel-slide carousel-slide-from ${
-                        transition.direction === "right" ? "slide-out-left" : "slide-out-right"
-                      }`
-                    )}
-                {isResumeTransition
-                  ? renderSlide(toSlide, "carousel-slide carousel-slide-to", true, {
-                      ...resumeSlideStyle,
-                      transform: `translateX(${
-                        resumePhase === "running" ? 0 : resumeToStart
-                      }px)`,
-                    })
-                  : renderSlide(
-                      toSlide,
-                      `carousel-slide carousel-slide-to ${
-                        transition.direction === "right" ? "slide-in-right" : "slide-in-left"
-                      }`,
-                      true
-                    )}
-              </>
-            ) : (
-              renderSlide(settledSlide, "carousel-slide carousel-slide-active", true)
-            )}
-          </button>
+          <div className="photo-carousel-stage">
+            <button
+              type="button"
+              className="carousel-nav left"
+              onClick={goPrev}
+              aria-label="Previous photo"
+            >
+              {"<"}
+            </button>
+            <button
+              type="button"
+              className="carousel-nav right"
+              onClick={goNext}
+              aria-label="Next photo"
+            >
+              {">"}
+            </button>
+            <button
+              type="button"
+              className="photo-carousel-item"
+              ref={carouselRef}
+              onContextMenu={(event) => event.preventDefault()}
+              onTouchStart={onCarouselTouchStart}
+              onTouchMove={onCarouselTouchMove}
+              onTouchEnd={onCarouselTouchEnd}
+              onTouchCancel={onCarouselTouchCancel}
+            >
+              {isDragging && dragNeighborSlide && settledSlide ? (
+                <>
+                  {renderSlide(settledSlide, "carousel-slide carousel-slide-active", true, {
+                    transform: `translateX(${dragOffset}px)`,
+                    transition: "none",
+                  })}
+                  {renderSlide(dragNeighborSlide, "carousel-slide", true, {
+                    transform: `translateX(${
+                      (dragOffset < 0 ? 1 : -1) * (dragTrackWidth + dragGapPx) +
+                      dragOffset
+                    }px)`,
+                    transition: "none",
+                  })}
+                </>
+              ) : transition && fromSlide && toSlide ? (
+                <>
+                  {isResumeTransition
+                    ? renderSlide(fromSlide, "carousel-slide carousel-slide-from", true, {
+                        ...resumeSlideStyle,
+                        transform: `translateX(${
+                          resumePhase === "running" ? resumeFromEnd : resumeFromStart
+                        }px)`,
+                      })
+                    : renderSlide(
+                        fromSlide,
+                        `carousel-slide carousel-slide-from ${
+                          transition.direction === "right" ? "slide-out-left" : "slide-out-right"
+                        }`
+                      )}
+                  {isResumeTransition
+                    ? renderSlide(toSlide, "carousel-slide carousel-slide-to", true, {
+                        ...resumeSlideStyle,
+                        transform: `translateX(${
+                          resumePhase === "running" ? 0 : resumeToStart
+                        }px)`,
+                      })
+                    : renderSlide(
+                        toSlide,
+                        `carousel-slide carousel-slide-to ${
+                          transition.direction === "right" ? "slide-in-right" : "slide-in-left"
+                        }`,
+                        true
+                      )}
+                </>
+              ) : (
+                renderSlide(settledSlide, "carousel-slide carousel-slide-active", true)
+              )}
+            </button>
+          </div>
+          <div className="photo-meta photo-carousel-meta">
+            <span>{settledSlide?.title || "Untitled"}</span>
+            {settledSlide?.year ? <span>{settledSlide.year}</span> : null}
+          </div>
         </div>
       )}
       {selectedIndex !== null ? (

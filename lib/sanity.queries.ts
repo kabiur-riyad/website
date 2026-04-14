@@ -2,6 +2,7 @@ export const photoGridQuery = `
   *[_type == "photo" && defined(image) && homeVisible != false] | order(orderRank asc) {
     _id,
     title,
+    year,
     caption,
     image{
       ...,

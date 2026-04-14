@@ -88,14 +88,22 @@ export default function Lightbox({ photos, startIndex, onClose }: Props) {
         }}
       >
         {src ? (
-          <Image
-            src={src.url}
-            alt={photo?.title || "Photography"}
-            width={src.width}
-            height={src.height}
-            sizes="92vw"
-            onContextMenu={(event) => event.preventDefault()}
-          />
+          <div className="photo-display-frame lightbox-photo-frame">
+            <div className="photo-media">
+              <Image
+                src={src.url}
+                alt={photo?.title || "Photography"}
+                width={src.width}
+                height={src.height}
+                sizes="92vw"
+                onContextMenu={(event) => event.preventDefault()}
+              />
+            </div>
+            <div className="photo-meta">
+              <span>{photo?.title || "Untitled"}</span>
+              {photo?.year ? <span>{photo.year}</span> : null}
+            </div>
+          </div>
         ) : null}
         {photo?.caption ? (
           <div className="lightbox-caption">{photo.caption}</div>

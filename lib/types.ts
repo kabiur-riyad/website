@@ -19,6 +19,7 @@ export type SanityImage = {
 export type Photo = {
   _id: string;
   title?: string;
+  year?: number;
   caption?: string;
   homeVisible?: boolean;
   image: SanityImage;
