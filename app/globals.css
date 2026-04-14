@@ -195,7 +195,8 @@ img {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px 56px;
+  padding: 0 56px 8px;
+  margin-top: -12px;
 }
 
 .photo-carousel-stage {
@@ -757,13 +758,18 @@ img {
   }
 
   .photo-carousel {
-    padding: 8px 0;
+    padding: 0;
+    margin-top: -12px;
+    user-select: none;
+    -webkit-user-select: none;
   }
 
   .photo-carousel-item {
     --carousel-slide-gap: 32px;
     width: 100%;
     min-height: calc(100vh - 260px);
+    user-select: none;
+    -webkit-user-select: none;
   }
 
   .photo-carousel-item img {
@@ -788,6 +794,16 @@ img {
 
   .lightbox-photo-frame .photo-meta {
     padding-left: 0;
+  }
+
+  .lightbox-photo-frame {
+    width: calc(100vw - 32px);
+    max-width: calc(100vw - 32px);
+  }
+
+  .lightbox-close {
+    top: 18px;
+    right: 16px;
   }
 
   .carousel-nav {

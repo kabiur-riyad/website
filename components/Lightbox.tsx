@@ -39,6 +39,25 @@ export default function Lightbox({ photos, startIndex, onClose }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [goNext, goPrev, onClose]);
 
+  useEffect(() => {
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousBodyTouchAction = document.body.style.touchAction;
+    const previousHtmlTouchAction = document.documentElement.style.touchAction;
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+    document.documentElement.style.touchAction = "none";
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.touchAction = previousBodyTouchAction;
+      document.documentElement.style.touchAction = previousHtmlTouchAction;
+    };
+  }, []);
+
   const src = useMemo(() => {
     if (!photo?.image) return null;
     const builder = urlFor(photo.image);
