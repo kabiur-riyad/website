@@ -84,6 +84,7 @@ export default async function CollectionDetailPage({
             ? photo._key
             : `${project._id}-${index}`,
       title: "title" in photo ? photo.title : undefined,
+      location: "location" in photo ? photo.location : undefined,
       caption: photo.caption,
       image: photo.image,
     }));
@@ -110,6 +111,7 @@ export default async function CollectionDetailPage({
           <PhotoGridClient
             photos={collectionPhotos}
             defaultViewMode={settings?.defaultViewMode || "carousel"}
+            hideTitles
           />
         )}
       </div>

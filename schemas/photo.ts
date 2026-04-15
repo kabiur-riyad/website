@@ -21,6 +21,11 @@ export default defineType({
       validation: (rule) => rule.integer().min(1800).max(2100),
     }),
     defineField({
+      name: "location",
+      title: "Location",
+      type: "string",
+    }),
+    defineField({
       name: "caption",
       title: "Caption",
       type: "string",
@@ -54,11 +59,13 @@ export default defineType({
   preview: {
     select: {
       title: "title",
+      subtitle: "location",
       media: "image",
     },
     prepare(selection) {
       return {
         title: selection.title || "Photo",
+        subtitle: selection.subtitle,
         media: selection.media,
       };
     },

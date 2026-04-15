@@ -3,6 +3,7 @@ export const photoGridQuery = `
     _id,
     title,
     year,
+    location,
     caption,
     image{
       ...,
@@ -17,6 +18,7 @@ export const latestPhotoQuery = `
   *[_type == "photo" && defined(image) && homeVisible != false] | order(orderRank asc)[0] {
     _id,
     title,
+    location,
     image{
       ...,
       "assetMeta": asset->{
@@ -66,6 +68,7 @@ export const projectBySlugQuery = `
     "relatedPhotos": *[_type == "photo" && collection._ref == ^._id && defined(image)] | order(publishedAt desc) {
       _id,
       title,
+      location,
       caption,
       image{
         ...,

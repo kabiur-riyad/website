@@ -20,6 +20,7 @@ export type Photo = {
   _id: string;
   title?: string;
   year?: number;
+  location?: string;
   caption?: string;
   homeVisible?: boolean;
   image: SanityImage;

@@ -10,6 +10,7 @@ type Props = {
   photos: Photo[];
   defaultViewMode?: "grid" | "carousel";
   hideViewToggle?: boolean;
+  hideTitles?: boolean;
 };
 
 type CarouselTransition = {
@@ -21,10 +22,18 @@ type CarouselTransition = {
   startOffset: number;
 };
 
+function formatPhotoMeta(location?: string, year?: number) {
+  if (location && year) return `${location} | ${year}`;
+  if (location) return location;
+  if (year) return String(year);
+  return null;
+}
+
 export default function PhotoGridClient({
   photos,
   defaultViewMode = "carousel",
   hideViewToggle = false,
+  hideTitles = false,
 }: Props) {
   const CAROUSEL_TRANSITION_MS = 360;
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -224,6 +233,7 @@ export default function PhotoGridClient({
       return {
         id: photo._id,
         title: photo.title,
+        location: photo.location,
         year: photo.year,
         src,
         width,
@@ -572,8 +582,10 @@ export default function PhotoGridClient({
             </button>
           </div>
           <div className="photo-meta photo-carousel-meta">
-            <span>{settledSlide?.title || "Untitled"}</span>
-            {settledSlide?.year ? <span>{settledSlide.year}</span> : null}
+            {!hideTitles && settledSlide?.title ? <span>{settledSlide.title}</span> : null}
+            {formatPhotoMeta(settledSlide?.location, settledSlide?.year) ? (
+              <span>{formatPhotoMeta(settledSlide?.location, settledSlide?.year)}</span>
+            ) : null}
           </div>
         </div>
       )}
@@ -582,6 +594,7 @@ export default function PhotoGridClient({
           photos={photos}
           startIndex={selectedIndex}
           onClose={() => setSelectedIndex(null)}
+          hideTitles={hideTitles}
         />
       ) : null}
     </>

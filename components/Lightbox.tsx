@@ -9,9 +9,17 @@ type Props = {
   photos: Photo[];
   startIndex: number;
   onClose: () => void;
+  hideTitles?: boolean;
 };
 
-export default function Lightbox({ photos, startIndex, onClose }: Props) {
+function formatPhotoMeta(location?: string, year?: number) {
+  if (location && year) return `${location} | ${year}`;
+  if (location) return location;
+  if (year) return String(year);
+  return null;
+}
+
+export default function Lightbox({ photos, startIndex, onClose, hideTitles = false }: Props) {
   const [index, setIndex] = useState(startIndex);
   const startX = useRef<number | null>(null);
 
@@ -119,8 +127,10 @@ export default function Lightbox({ photos, startIndex, onClose }: Props) {
               />
             </div>
             <div className="photo-meta">
-              <span>{photo?.title || "Untitled"}</span>
-              {photo?.year ? <span>{photo.year}</span> : null}
+              {!hideTitles && photo?.title ? <span>{photo.title}</span> : null}
+              {formatPhotoMeta(photo?.location, photo?.year) ? (
+                <span>{formatPhotoMeta(photo?.location, photo?.year)}</span>
+              ) : null}
             </div>
           </div>
         ) : null}
