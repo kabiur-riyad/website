@@ -57,6 +57,16 @@ a {
   text-decoration: none;
 }
 
+a,
+button,
+[role="button"],
+input,
+textarea,
+select,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+
 img {
   max-width: 100%;
   display: block;
