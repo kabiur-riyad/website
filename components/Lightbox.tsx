@@ -22,6 +22,8 @@ function formatPhotoMeta(location?: string, year?: number) {
 export default function Lightbox({ photos, startIndex, onClose, hideTitles = false }: Props) {
   const [index, setIndex] = useState(startIndex);
   const startX = useRef<number | null>(null);
+  const [cursorHalf, setCursorHalf] = useState<"left" | "right" | null>(null);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setIndex(startIndex);
@@ -91,14 +93,24 @@ export default function Lightbox({ photos, startIndex, onClose, hideTitles = fal
       <button type="button" className="lightbox-close" onClick={onClose} aria-label="Close">
         ×
       </button>
-      <button type="button" className="lightbox-arrow left" onClick={goPrev}>
+      <button type="button" className={`lightbox-arrow left${cursorHalf === "left" ? " visible" : ""}`} onClick={goPrev}>
         ←
       </button>
-      <button type="button" className="lightbox-arrow right" onClick={goNext}>
+      <button type="button" className={`lightbox-arrow right${cursorHalf === "right" ? " visible" : ""}`} onClick={goNext}>
         →
       </button>
       <div
         className="lightbox-content"
+        onMouseMove={(event) => {
+          const half = event.clientX < window.innerWidth / 2 ? "left" : "right";
+          setCursorHalf(half);
+          if (hideTimer.current) clearTimeout(hideTimer.current);
+          hideTimer.current = setTimeout(() => setCursorHalf(null), 1500);
+        }}
+        onMouseLeave={() => {
+          setCursorHalf(null);
+          if (hideTimer.current) clearTimeout(hideTimer.current);
+        }}
         onContextMenu={(event) => event.preventDefault()}
         onTouchStart={(event) => {
           startX.current = event.touches[0]?.clientX ?? null;
@@ -126,14 +138,14 @@ export default function Lightbox({ photos, startIndex, onClose, hideTitles = fal
                 onContextMenu={(event) => event.preventDefault()}
               />
             </div>
-            <div className="photo-meta">
-              {!hideTitles && photo?.title ? <span>{photo.title}</span> : null}
-              {formatPhotoMeta(photo?.location, photo?.year) ? (
-                <span>{formatPhotoMeta(photo?.location, photo?.year)}</span>
-              ) : null}
-            </div>
           </div>
         ) : null}
+        <div className="lightbox-meta">
+          {!hideTitles && photo?.title ? <span>{photo.title}</span> : null}
+          {formatPhotoMeta(photo?.location, photo?.year) ? (
+            <span>{formatPhotoMeta(photo?.location, photo?.year)}</span>
+          ) : null}
+        </div>
         {photo?.caption ? (
           <div className="lightbox-caption">{photo.caption}</div>
         ) : null}

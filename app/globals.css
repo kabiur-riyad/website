@@ -204,7 +204,7 @@ img {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 56px 8px;
+  padding: 0 80px 8px;
   margin-top: -12px;
 }
 
@@ -228,16 +228,16 @@ img {
   justify-content: center;
   position: relative;
   overflow: hidden;
-  min-height: calc(100vh - 220px);
+  min-height: calc(100vh - 240px);
   touch-action: pan-y;
 }
 
 .photo-carousel-item img {
   width: auto;
-  height: calc(100vh - 220px);
+  height: calc(100vh - 240px);
   object-fit: contain;
   display: block;
-  max-width: min(72vw, 960px);
+  max-width: 93%;
   margin: 0 auto;
   user-select: none;
   -webkit-user-select: none;
@@ -259,8 +259,8 @@ img {
   display: inline-flex;
   flex-direction: column;
   align-items: stretch;
-  width: min(72vw, 960px);
-  max-width: min(72vw, 960px);
+  width: 93%;
+  max-width: 93%;
 }
 
 .photo-media {
@@ -291,6 +291,7 @@ img {
 
 .carousel-slide-active {
   position: relative;
+  width: 100%;
 }
 
 .slide-out-left {
@@ -368,7 +369,7 @@ img {
   cursor: pointer;
   font-size: 1.35rem;
   line-height: 1;
-  padding: 4px 6px;
+  padding: 0;
   transition: opacity 0.2s ease;
 }
 
@@ -658,7 +659,7 @@ img {
 .lightbox {
   position: fixed;
   inset: 0;
-  background: rgba(12, 12, 12, 0.94);
+  background: var(--paper);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -687,12 +688,22 @@ img {
   max-width: 92vw;
 }
 
-.lightbox-photo-frame .photo-meta {
-  padding-left: 18px;
+.lightbox-meta {
+  position: fixed;
+  bottom: 26px;
+  left: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  z-index: 21;
 }
 
 .lightbox-caption {
-  color: #e6e2dd;
+  color: var(--muted);
   font-size: 0.9rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -705,7 +716,7 @@ img {
   right: 26px;
   border: none;
   background: transparent;
-  color: #ffffff;
+  color: var(--ink);
   font-size: 1.6rem;
   cursor: pointer;
 }
@@ -715,13 +726,19 @@ img {
   top: 50%;
   transform: translateY(-50%);
   border: none;
-  background: rgba(0, 0, 0, 0.35);
-  color: #ffffff;
+  background: transparent;
+  color: var(--ink);
   font-size: 1.4rem;
   width: 44px;
   height: 44px;
   border-radius: 999px;
   cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.lightbox-arrow.visible {
+  opacity: 1;
 }
 
 .lightbox-arrow.left {
@@ -767,7 +784,7 @@ img {
   }
 
   .photo-carousel {
-    padding: 0;
+    padding: 0 12px;
     margin-top: -12px;
     user-select: none;
     -webkit-user-select: none;
@@ -776,19 +793,21 @@ img {
   .photo-carousel-item {
     --carousel-slide-gap: 32px;
     width: 100%;
-    min-height: calc(100vh - 260px);
+    min-height: calc(100vh - 280px);
     user-select: none;
     -webkit-user-select: none;
   }
 
   .photo-carousel-item img {
-    max-width: 100%;
-    height: calc(100vh - 260px);
+    max-width: 93%;
+    max-height: calc(100vh - 280px);
+    height: auto;
+    width: auto;
   }
 
   .photo-display-frame {
-    width: 100%;
-    max-width: 100%;
+    width: 93%;
+    max-width: 93%;
   }
 
   .photo-meta {
@@ -801,13 +820,14 @@ img {
     padding-left: 0;
   }
 
-  .lightbox-photo-frame .photo-meta {
-    padding-left: 0;
-  }
-
   .lightbox-photo-frame {
     width: calc(100vw - 32px);
     max-width: calc(100vw - 32px);
+  }
+
+  .lightbox-meta {
+    bottom: 18px;
+    left: 16px;
   }
 
   .lightbox-close {
@@ -816,7 +836,8 @@ img {
   }
 
   .carousel-nav {
-    display: none;
+    font-size: 1.1rem;
+    padding: 0;
   }
 
   .lightbox-arrow {

@@ -92,17 +92,6 @@ export default async function CollectionDetailPage({
   return (
     <main className="page">
       <div className="container">
-        <section className="project-hero">
-          <div>
-            <h1>{project.title}</h1>
-            {project.description ? (
-              <div>
-                <PortableText value={project.description} />
-              </div>
-            ) : null}
-          </div>
-        </section>
-
         {collectionPhotos.length === 0 ? (
           <section className="photo-series">
             <p>No photos in this collection yet.</p>
@@ -114,6 +103,17 @@ export default async function CollectionDetailPage({
             hideTitles
           />
         )}
+
+        <section className="project-hero">
+          <div>
+            <h1>{project.title}</h1>
+            {project.description ? (
+              <div>
+                <PortableText value={project.description} />
+              </div>
+            ) : null}
+          </div>
+        </section>
       </div>
     </main>
   );

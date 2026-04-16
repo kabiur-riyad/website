@@ -189,12 +189,11 @@ export default function PhotoGridClient({
   useEffect(() => {
     if (viewMode !== "carousel" || selectedIndex !== null) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "ArrowLeft") {
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
         event.preventDefault();
-        goPrev();
-      } else if (event.key === "ArrowRight") {
-        event.preventDefault();
-        goNext();
+        (document.activeElement as HTMLElement)?.blur();
+        if (event.key === "ArrowLeft") goPrev();
+        else goNext();
       }
     };
     window.addEventListener("keydown", onKeyDown);
@@ -295,7 +294,8 @@ export default function PhotoGridClient({
       slide: { id: string; title?: string | null; year?: number; src: string; width: number; height: number } | null,
       className: string,
       priority = false,
-      style?: CSSProperties
+      style?: CSSProperties,
+      onClickIndex?: number
     ) => {
       if (!slide) return null;
       return (
@@ -311,6 +311,10 @@ export default function PhotoGridClient({
                 sizes="(max-width: 768px) 90vw, 72vw"
                 priority={priority}
                 draggable={false}
+                onClick={onClickIndex !== undefined ? (e) => {
+                  e.stopPropagation();
+                  setSelectedIndex(onClickIndex);
+                } : undefined}
               />
             </div>
           </div>
@@ -511,6 +515,7 @@ export default function PhotoGridClient({
               className="carousel-nav left"
               onClick={goPrev}
               aria-label="Previous photo"
+              tabIndex={-1}
             >
               {"<"}
             </button>
@@ -519,6 +524,7 @@ export default function PhotoGridClient({
               className="carousel-nav right"
               onClick={goNext}
               aria-label="Next photo"
+              tabIndex={-1}
             >
               {">"}
             </button>
@@ -526,6 +532,7 @@ export default function PhotoGridClient({
               type="button"
               className="photo-carousel-item"
               ref={carouselRef}
+              tabIndex={-1}
               onContextMenu={(event) => event.preventDefault()}
               onTouchStart={onCarouselTouchStart}
               onTouchMove={onCarouselTouchMove}
@@ -537,7 +544,7 @@ export default function PhotoGridClient({
                   {renderSlide(settledSlide, "carousel-slide carousel-slide-active", true, {
                     transform: `translateX(${dragOffset}px)`,
                     transition: "none",
-                  })}
+                  }, carouselIndex)}
                   {renderSlide(dragNeighborSlide, "carousel-slide", true, {
                     transform: `translateX(${
                       (dragOffset < 0 ? 1 : -1) * (dragTrackWidth + dragGapPx) +
@@ -577,16 +584,11 @@ export default function PhotoGridClient({
                       )}
                 </>
               ) : (
-                renderSlide(settledSlide, "carousel-slide carousel-slide-active", true)
+                renderSlide(settledSlide, "carousel-slide carousel-slide-active", true, undefined, carouselIndex)
               )}
             </button>
           </div>
-          <div className="photo-meta photo-carousel-meta">
-            {!hideTitles && settledSlide?.title ? <span>{settledSlide.title}</span> : null}
-            {formatPhotoMeta(settledSlide?.location, settledSlide?.year) ? (
-              <span>{formatPhotoMeta(settledSlide?.location, settledSlide?.year)}</span>
-            ) : null}
-          </div>
+          {null}
         </div>
       )}
       {selectedIndex !== null ? (
