@@ -136,14 +136,12 @@ export default function PhotoGridClient({
 
   const columns = useMemo(() => {
     if (containerWidth >= 1200) return 3;
-    if (containerWidth >= 800) return 2;
-    return 1;
+    return 2;
   }, [containerWidth]);
 
   const gap = useMemo(() => {
     if (containerWidth >= 1200) return 28;
-    if (containerWidth >= 800) return 22;
-    return 28;
+    return 16;
   }, [containerWidth]);
 
   const sideInset = useMemo(() => {
