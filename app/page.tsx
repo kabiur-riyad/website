@@ -35,9 +35,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       const builder = urlFor(photo.image)!;
       const fullImageUrl = builder.url();
 
-      // Use licenseUrl if provided, otherwise All Rights Reserved (no license URL, has acquireLicensePage with email)
+      // Only include license field when photo has a custom license (Unsplash, Creative Commons, etc.)
+      // All Rights Reserved photos will not have a license field - only acquireLicensePage with email
       const hasLicenseUrl = !!photo.licenseUrl;
-      const licenseUrl = photo.licenseUrl; // undefined if empty (All Rights Reserved)
+      const licenseUrl = photo.licenseUrl;
       const acquireLicenseUrl = hasLicenseUrl
         ? undefined
         : (settings?.email ? `mailto:${settings.email}` : undefined);
@@ -60,6 +61,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           "@type": "Person",
           name: "Kabiur Rahman Riyad",
           url: "https://riyad.pro.bd",
+        },
+        creator: {
+          "@type": "Person",
+          name: "Kabiur Rahman Riyad",
+        },
+        copyrightHolder: {
+          "@type": "Person",
+          name: "Kabiur Rahman Riyad",
         },
         ...(licenseUrl && { license: licenseUrl }),
         ...(acquireLicenseUrl && { acquireLicensePage: acquireLicenseUrl }),
