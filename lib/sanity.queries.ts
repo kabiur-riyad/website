@@ -5,6 +5,7 @@ export const photoGridQuery = `
     year,
     location,
     caption,
+    licenseUrl,
     image{
       ...,
       "assetMeta": asset->{
@@ -63,7 +64,8 @@ export const projectBySlugQuery = `
           metadata{dimensions}
         }
       },
-      caption
+      caption,
+      licenseUrl
     },
     "relatedPhotos": *[_type == "photo" && collection._ref == ^._id && defined(image)] | order(publishedAt desc) {
       _id,
@@ -120,5 +122,21 @@ export const sitemapDataQuery = `
   *[_type == "project"] {
     "slug": slug.current,
     "lastmod": _updatedAt
+  }
+`;
+
+export const photoByIdQuery = `
+  *[_type == "photo" && _id == $id][0] {
+    _id,
+    title,
+    year,
+    location,
+    caption,
+    image{
+      ...,
+      "assetMeta": asset->{
+        metadata{dimensions}
+      }
+    }
   }
 `;

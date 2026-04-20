@@ -39,15 +39,25 @@ export default function Lightbox({ photos, startIndex, onClose, hideTitles = fal
     setIndex((current) => (current + 1) % photos.length);
   }, [photos.length]);
 
+  // Handle closing - remove photo param from URL
+  const handleClose = useCallback(() => {
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("photo");
+      window.history.replaceState({}, "", url.toString());
+    }
+    onClose();
+  }, [onClose]);
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") handleClose();
       if (event.key === "ArrowLeft") goPrev();
       if (event.key === "ArrowRight") goNext();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [goNext, goPrev, onClose]);
+  }, [goNext, goPrev, handleClose]);
 
   useEffect(() => {
     const previousBodyOverflow = document.body.style.overflow;
@@ -67,6 +77,17 @@ export default function Lightbox({ photos, startIndex, onClose, hideTitles = fal
       document.documentElement.style.touchAction = previousHtmlTouchAction;
     };
   }, []);
+
+  // Update URL when photo changes in lightbox for shareable links
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const currentPhoto = photos[index];
+    if (!currentPhoto) return;
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("photo", currentPhoto._id);
+    window.history.replaceState({}, "", url.toString());
+  }, [index, photos]);
 
   const src = useMemo(() => {
     if (!photo?.image) return null;
@@ -90,7 +111,7 @@ export default function Lightbox({ photos, startIndex, onClose, hideTitles = fal
 
   return (
     <div className="lightbox" role="dialog" aria-modal="true">
-      <button type="button" className="lightbox-close" onClick={onClose} aria-label="Close">
+      <button type="button" className="lightbox-close" onClick={handleClose} aria-label="Close">
         ×
       </button>
       <button type="button" className={`lightbox-arrow left${cursorHalf === "left" ? " visible" : ""}`} onClick={goPrev}>
@@ -149,6 +170,13 @@ export default function Lightbox({ photos, startIndex, onClose, hideTitles = fal
         {photo?.caption ? (
           <div className="lightbox-caption">{photo.caption}</div>
         ) : null}
+        {photo?.licenseUrl && (
+          <div className="lightbox-copyright">
+            <a href={photo.licenseUrl} target="_blank" rel="noreferrer" className="lightbox-license-link">
+              License
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );

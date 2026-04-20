@@ -11,6 +11,7 @@ type Props = {
   defaultViewMode?: "grid" | "carousel";
   hideViewToggle?: boolean;
   hideTitles?: boolean;
+  initialPhotoId?: string;
 };
 
 type CarouselTransition = {
@@ -34,11 +35,13 @@ export default function PhotoGridClient({
   defaultViewMode = "carousel",
   hideViewToggle = false,
   hideTitles = false,
+  initialPhotoId,
 }: Props) {
   const CAROUSEL_TRANSITION_MS = 360;
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "carousel">(defaultViewMode);
   const [carouselIndex, setCarouselIndex] = useState(0);
+
   const [transition, setTransition] = useState<CarouselTransition | null>(null);
   const [resumePhase, setResumePhase] = useState<"idle" | "running">("idle");
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -49,6 +52,19 @@ export default function PhotoGridClient({
   const [mounted, setMounted] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Auto-open lightbox if initialPhotoId is provided and matches a photo
+  useEffect(() => {
+    if (initialPhotoId && photos.length > 0) {
+      const index = photos.findIndex((p) => p._id === initialPhotoId);
+      if (index !== -1) {
+        setSelectedIndex(index);
+        // Also set carousel to this index for consistency
+        setCarouselIndex(index);
+      }
+    }
+  }, [initialPhotoId, photos]);
+
   const swipeStartX = useRef<number | null>(null);
   const swipeStartY = useRef<number | null>(null);
   const swipeCurrentX = useRef<number | null>(null);

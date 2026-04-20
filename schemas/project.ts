@@ -56,6 +56,12 @@ export default defineType({
               title: "Caption",
               type: "string",
             }),
+            defineField({
+              name: "licenseUrl",
+              title: "License URL",
+              description: "Leave empty for All Rights Reserved, or enter license URL (e.g., https://unsplash.com/license)",
+              type: "url",
+            }),
           ],
           preview: {
             select: {

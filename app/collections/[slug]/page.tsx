@@ -51,10 +51,13 @@ async function getProject(slug: string) {
 
 export default async function CollectionDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ photo?: string }>;
 }) {
   const { slug } = await params;
+  const { photo: initialPhotoId } = await searchParams;
   const [project, settings] = await Promise.all([
     getProject(slug),
     hasSanityConfig && sanityClient
@@ -86,6 +89,7 @@ export default async function CollectionDetailPage({
       title: "title" in photo ? photo.title : undefined,
       location: "location" in photo ? photo.location : undefined,
       caption: photo.caption,
+      licenseUrl: photo.licenseUrl,
       image: photo.image,
     }));
 
@@ -101,6 +105,7 @@ export default async function CollectionDetailPage({
             photos={collectionPhotos}
             defaultViewMode={settings?.defaultViewMode || "carousel"}
             hideTitles
+            initialPhotoId={initialPhotoId}
           />
         )}
 

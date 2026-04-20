@@ -23,6 +23,7 @@ export type Photo = {
   location?: string;
   caption?: string;
   homeVisible?: boolean;
+  licenseUrl?: string;
   image: SanityImage;
 };
 
@@ -30,6 +31,7 @@ export type ProjectPhoto = {
   _key: string;
   image: SanityImage;
   caption?: string;
+  licenseUrl?: string;
 };
 
 export type Project = {
