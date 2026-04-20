@@ -73,7 +73,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         ...(licenseUrl && { license: licenseUrl }),
         ...(acquireLicenseUrl && { acquireLicensePage: acquireLicenseUrl }),
         creditText: "Kabiur Rahman Riyad",
-        copyrightNotice: `© ${photo.year || new Date().getFullYear()} Kabiur Rahman Riyad`,
+        copyrightNotice: `© ${photo.year || new Date().getFullYear()} Kabiur Rahman Riyad. ${photo.licenseUrl ? "Some rights reserved." : "All rights reserved."}`,
       };
     });
 
