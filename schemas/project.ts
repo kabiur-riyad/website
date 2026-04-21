@@ -67,8 +67,10 @@ export default defineType({
                   { title: "Unsplash License", value: "unsplash" },
                   { title: "CC BY-NC 4.0 (Attribution-NonCommercial)", value: "cc-by-nc" },
                 ],
+                layout: "dropdown",
               },
               initialValue: "all-rights-reserved",
+              validation: (rule) => rule.required(),
             }),
           ],
           preview: {
