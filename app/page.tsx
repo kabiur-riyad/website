@@ -35,11 +35,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       const builder = urlFor(photo.image)!;
       const fullImageUrl = builder.url();
 
-      // Only include license field when photo has a custom license (Unsplash, Creative Commons, etc.)
-      // All Rights Reserved photos will not have a license field - only acquireLicensePage with email
-      const hasLicenseUrl = !!photo.licenseUrl;
-      const licenseUrl = photo.licenseUrl;
-      const acquireLicenseUrl = hasLicenseUrl
+      // Map license enum to actual license URL
+      const licenseUrlMap: Record<string, string> = {
+        "unsplash": "https://unsplash.com/license",
+        "cc-by-nc": "https://creativecommons.org/licenses/by-nc/4.0/",
+      };
+      const hasCustomLicense = photo.license && photo.license !== "all-rights-reserved";
+      const licenseUrl = hasCustomLicense ? licenseUrlMap[photo.license!] : undefined;
+      const acquireLicenseUrl = hasCustomLicense
         ? undefined
         : (settings?.email ? `mailto:${settings.email}` : undefined);
 
@@ -70,10 +73,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           "@type": "Person",
           name: "Kabiur Rahman Riyad",
         },
-        ...(licenseUrl && { license: licenseUrl }),
+        license: licenseUrl || "https://riyad.pro.bd",
         ...(acquireLicenseUrl && { acquireLicensePage: acquireLicenseUrl }),
         creditText: "Kabiur Rahman Riyad",
-        copyrightNotice: `© ${photo.year || new Date().getFullYear()} Kabiur Rahman Riyad. ${photo.licenseUrl ? "Some rights reserved." : "All rights reserved."}`,
+        copyrightNotice: `© ${photo.year || new Date().getFullYear()} Kabiur Rahman Riyad. ${hasCustomLicense ? "Some rights reserved." : "All rights reserved."}`,
       };
     });
 

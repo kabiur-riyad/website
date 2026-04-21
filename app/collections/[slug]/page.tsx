@@ -89,7 +89,7 @@ export default async function CollectionDetailPage({
       title: "title" in photo ? photo.title : undefined,
       location: "location" in photo ? photo.location : undefined,
       caption: photo.caption,
-      licenseUrl: photo.licenseUrl,
+      license: photo.license,
       image: photo.image,
     }));
 

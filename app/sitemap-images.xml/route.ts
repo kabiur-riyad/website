@@ -23,6 +23,12 @@ export async function GET() {
 
   const contactUrl = settings?.email ? `mailto:${settings.email}` : baseUrl;
 
+  // Map license enum to URL
+  const licenseUrlMap: Record<string, string> = {
+    "unsplash": "https://unsplash.com/license",
+    "cc-by-nc": "https://creativecommons.org/licenses/by-nc/4.0/",
+  };
+
   // Build image sitemap entries
   const imageEntries = photos
     .filter((photo) => photo.image && urlFor(photo.image))
@@ -42,7 +48,9 @@ export async function GET() {
         .quality(85)
         .url();
 
-      const licenseUrl = photo.licenseUrl || contactUrl;
+      const licenseUrl = photo.license && photo.license !== "all-rights-reserved"
+        ? licenseUrlMap[photo.license]
+        : contactUrl;
 
       return `
     <url>
@@ -76,7 +84,9 @@ export async function GET() {
         .quality(80)
         .url();
 
-      const homeLicenseUrl = photo.licenseUrl || contactUrl;
+      const homeLicenseUrl = photo.license && photo.license !== "all-rights-reserved" 
+        ? licenseUrlMap[photo.license] 
+        : contactUrl;
 
       return `
       <image:image>

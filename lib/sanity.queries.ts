@@ -5,7 +5,7 @@ export const photoGridQuery = `
     year,
     location,
     caption,
-    licenseUrl,
+    license,
     image{
       ...,
       "assetMeta": asset->{

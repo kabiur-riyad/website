@@ -56,10 +56,18 @@ export default defineType({
       initialValue: () => new Date().toISOString(),
     }),
     defineField({
-      name: "licenseUrl",
-      title: "License URL",
-      description: "Leave empty for All Rights Reserved, or enter license URL (e.g., https://unsplash.com/license)",
-      type: "url",
+      name: "license",
+      title: "License",
+      description: "Choose the license for this photo",
+      type: "string",
+      options: {
+        list: [
+          { title: "All Rights Reserved", value: "all-rights-reserved" },
+          { title: "Unsplash License", value: "unsplash" },
+          { title: "CC BY-NC 4.0 (Attribution-NonCommercial)", value: "cc-by-nc" },
+        ],
+      },
+      initialValue: "all-rights-reserved",
     }),
   ],
   preview: {

@@ -170,9 +170,20 @@ export default function Lightbox({ photos, startIndex, onClose, hideTitles = fal
         {photo?.caption ? (
           <div className="lightbox-caption">{photo.caption}</div>
         ) : null}
-        {photo?.licenseUrl && (
+        {photo?.license && photo.license !== "all-rights-reserved" && (
           <div className="lightbox-copyright">
-            <a href={photo.licenseUrl} target="_blank" rel="noreferrer" className="lightbox-license-link">
+            <a
+              href={
+                photo.license === "unsplash"
+                  ? "https://unsplash.com/license"
+                  : photo.license === "cc-by-nc"
+                    ? "https://creativecommons.org/licenses/by-nc/4.0/"
+                    : "#"
+              }
+              target="_blank"
+              rel="noreferrer"
+              className="lightbox-license-link"
+            >
               License
             </a>
           </div>

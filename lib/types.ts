@@ -16,6 +16,8 @@ export type SanityImage = {
   };
 };
 
+export type PhotoLicense = "all-rights-reserved" | "unsplash" | "cc-by-nc";
+
 export type Photo = {
   _id: string;
   title?: string;
@@ -23,7 +25,7 @@ export type Photo = {
   location?: string;
   caption?: string;
   homeVisible?: boolean;
-  licenseUrl?: string;
+  license?: PhotoLicense;
   image: SanityImage;
 };
 
@@ -31,7 +33,7 @@ export type ProjectPhoto = {
   _key: string;
   image: SanityImage;
   caption?: string;
-  licenseUrl?: string;
+  license?: PhotoLicense;
 };
 
 export type Project = {
