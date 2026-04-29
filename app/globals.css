@@ -640,7 +640,6 @@ img {
 }
 
 .about-portrait {
-  border-radius: 12px;
   overflow: hidden;
   box-shadow: var(--shadow);
   width: 100%;
@@ -847,6 +846,11 @@ img {
 
   .about-grid {
     grid-template-columns: 1fr;
+  }
+
+  .about-portrait {
+    justify-self: center;
+    margin-right: 0;
   }
 }
 
