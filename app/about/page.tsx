@@ -80,6 +80,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function AboutPage() {
   const settings = await getSettings();
   const portrait = getPortraitData(settings);
+  const selectedLinks = settings?.aboutLinks?.filter((link) => link.label && link.url) ?? [];
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://riyad.pro.bd";
   const portraitSchema = portrait
     ? {
@@ -107,21 +108,38 @@ export default async function AboutPage() {
           />
         ) : null}
         <section className="hero">
-          <h1>About</h1>
+          {settings?.aboutIntro ? (
+            <p className="about-intro">{settings.aboutIntro}</p>
+          ) : null}
         </section>
 
         {settings ? (
           <>
             <section className="about-grid">
-              <div>
+              <div className="about-copy">
                 {settings.bio ? (
                   <PortableText value={settings.bio} />
                 ) : (
                   <p>Add your About content in Site Settings.</p>
                 )}
-                <p style={{ marginTop: "1rem" }}>
-                  <a href="/cv.html">View CV</a>
-                </p>
+                {selectedLinks.length > 0 ? (
+                  <div className="selected-links" aria-label="Selected links">
+                    {selectedLinks.map((link) => {
+                      const url = link.url!;
+                      const isExternal = url.startsWith("http");
+                      return (
+                        <a
+                          key={link._key ?? url}
+                          href={url}
+                          target={isExternal ? "_blank" : undefined}
+                          rel={isExternal ? "noreferrer" : undefined}
+                        >
+                          {link.label}
+                        </a>
+                      );
+                    })}
+                  </div>
+                ) : null}
               </div>
               {portrait ? (
                 <div className="about-portrait">
@@ -138,9 +156,18 @@ export default async function AboutPage() {
 
             <section className="contact-card contact-seamless">
               {settings?.contactBlurb ? (
-                <PortableText value={settings.contactBlurb} />
+                <>
+                  <h2 className="contact-heading">Contact</h2>
+                  <PortableText value={settings.contactBlurb} />
+                </>
               ) : (
-                <h1 className="contact-heading">Contact</h1>
+                <>
+                  <h2 className="contact-heading">Contact</h2>
+                  <p>
+                    For prints, licensing, collaborations, or editorial inquiries,
+                    email me directly.
+                  </p>
+                </>
               )}
               {settings?.email ? (
                 <p>

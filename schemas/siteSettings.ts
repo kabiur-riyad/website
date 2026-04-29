@@ -17,6 +17,48 @@ export default defineType({
       of: [{ type: "block" }],
     }),
     defineField({
+      name: "aboutIntro",
+      title: "About Intro",
+      type: "text",
+      rows: 2,
+      description: "Short introductory line shown under the About heading.",
+    }),
+    defineField({
+      name: "aboutLinks",
+      title: "About Links",
+      type: "array",
+      of: [
+        {
+          type: "object",
+          fields: [
+            defineField({
+              name: "label",
+              title: "Label",
+              type: "string",
+              validation: (rule) => rule.required(),
+            }),
+            defineField({
+              name: "url",
+              title: "URL",
+              type: "url",
+              validation: (rule) =>
+                rule.required().uri({
+                  allowRelative: true,
+                  scheme: ["http", "https", "mailto"],
+                }),
+            }),
+          ],
+          preview: {
+            select: {
+              title: "label",
+              subtitle: "url",
+            },
+          },
+        },
+      ],
+      description: "Optional links shown below the About bio, such as CV or external profiles.",
+    }),
+    defineField({
       name: "portrait",
       title: "Portrait",
       type: "image",

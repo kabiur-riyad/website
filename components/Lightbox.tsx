@@ -19,6 +19,23 @@ function formatPhotoMeta(location?: string, year?: number) {
   return null;
 }
 
+function getLicenseData(license?: Photo["license"]) {
+  switch (license) {
+    case "unsplash":
+      return {
+        name: "Unsplash License",
+        url: "https://unsplash.com/license",
+      };
+    case "cc-by-nc":
+      return {
+        name: "CC BY-NC 4.0",
+        url: "https://creativecommons.org/licenses/by-nc/4.0/",
+      };
+    default:
+      return null;
+  }
+}
+
 export default function Lightbox({ photos, startIndex, onClose, hideTitles = false }: Props) {
   const [index, setIndex] = useState(startIndex);
   const startX = useRef<number | null>(null);
@@ -30,6 +47,7 @@ export default function Lightbox({ photos, startIndex, onClose, hideTitles = fal
   }, [startIndex]);
 
   const photo = photos[index];
+  const licenseData = getLicenseData(photo?.license);
 
   const goPrev = useCallback(() => {
     setIndex((current) => (current - 1 + photos.length) % photos.length);
@@ -170,24 +188,18 @@ export default function Lightbox({ photos, startIndex, onClose, hideTitles = fal
         {photo?.caption ? (
           <div className="lightbox-caption">{photo.caption}</div>
         ) : null}
-        {photo?.license && photo.license !== "all-rights-reserved" && (
+        {licenseData ? (
           <div className="lightbox-copyright">
             <a
-              href={
-                photo.license === "unsplash"
-                  ? "https://unsplash.com/license"
-                  : photo.license === "cc-by-nc"
-                    ? "https://creativecommons.org/licenses/by-nc/4.0/"
-                    : "#"
-              }
+              href={licenseData.url}
               target="_blank"
               rel="noreferrer"
               className="lightbox-license-link"
             >
-              License
+              {licenseData.name}
             </a>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 import { Project } from "@/lib/types";
 import { getImageDimensions, urlFor } from "@/lib/sanity.image";
 
@@ -10,8 +9,8 @@ type Props = {
 export default function ProjectGrid({ projects }: Props) {
   return (
     <div className="projects-grid">
-      {projects.map((project) => (
-        <Link
+      {projects.map((project, index) => (
+        <a
           key={project._id}
           className="project-card"
           href={`/collections/${project.slug.current}`}
@@ -41,13 +40,14 @@ export default function ProjectGrid({ projects }: Props) {
                     sizes="(max-width: 768px) 92vw, 45vw"
                     style={{ width: "100%", height: "auto" }}
                     draggable={false}
+                    priority={index === 0}
                   />
                 );
               })()
             ) : null}
             <h3 className="project-cover-title">{project.title}</h3>
           </div>
-        </Link>
+        </a>
       ))}
     </div>
   );

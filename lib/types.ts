@@ -65,6 +65,12 @@ export type SiteSettings = {
   _id: string;
   title?: string;
   bio?: any;
+  aboutIntro?: string;
+  aboutLinks?: {
+    _key?: string;
+    label?: string;
+    url?: string;
+  }[];
   portrait?: SanityImage;
   favicon?: SanityImage;
   email?: string;

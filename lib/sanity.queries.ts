@@ -65,13 +65,14 @@ export const projectBySlugQuery = `
         }
       },
       caption,
-      licenseUrl
+      license
     },
     "relatedPhotos": *[_type == "photo" && collection._ref == ^._id && defined(image)] | order(publishedAt desc) {
       _id,
       title,
       location,
       caption,
+      license,
       image{
         ...,
         "assetMeta": asset->{
@@ -87,6 +88,12 @@ export const siteSettingsQuery = `
     _id,
     title,
     bio,
+    aboutIntro,
+    aboutLinks[]{
+      _key,
+      label,
+      url
+    },
     portrait{
       ...,
       "assetMeta": asset->{

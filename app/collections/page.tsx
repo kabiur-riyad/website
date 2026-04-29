@@ -22,12 +22,8 @@ export default async function CollectionsPage() {
   const projects = await getProjects();
 
   return (
-    <main className="page">
+    <main className="page collections-page">
       <div className="container">
-        <section className="hero">
-          <h1>Collections</h1>
-        </section>
-
         {hasSanityConfig ? (
           <ProjectGrid projects={projects} />
         ) : (
