@@ -31,7 +31,7 @@ export default function PhotoGridServer({ photos }: Props) {
 
           return (
             <li key={photo._id} className="seo-photo-item">
-              <a href={`/?photo=${photo._id}`} className="seo-photo-link">
+              <a href={`/photos/${photo._id}`} className="seo-photo-link">
                 <figure className="seo-photo-figure">
                   <img
                     src={src}

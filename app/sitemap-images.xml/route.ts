@@ -2,6 +2,7 @@ import { sanityClient, hasSanityConfig } from "@/lib/sanity.client";
 import { photoGridQuery, siteSettingsQuery } from "@/lib/sanity.queries";
 import { Photo, SiteSettings } from "@/lib/types";
 import { urlFor, getImageDimensions } from "@/lib/sanity.image";
+import { getPhotoDescription, getPhotoPageUrl, getPhotoTitle } from "@/lib/photo.seo";
 
 export const dynamic = "force-dynamic";
 
@@ -51,18 +52,19 @@ export async function GET() {
       const licenseUrl = photo.license && photo.license !== "all-rights-reserved"
         ? licenseUrlMap[photo.license]
         : contactUrl;
+      const pageUrl = getPhotoPageUrl(baseUrl, photo._id);
 
       return `
     <url>
-      <loc>${baseUrl}/?photo=${photo._id}</loc>
-      <lastmod>${new Date().toISOString()}</lastmod>
+      <loc>${escapeXml(pageUrl)}</loc>
+      <lastmod>${photo._updatedAt ? new Date(photo._updatedAt).toISOString() : new Date().toISOString()}</lastmod>
       <changefrequency>monthly</changefrequency>
       <priority>0.7</priority>
       <image:image>
-        <image:loc>${optimizedUrl}</image:loc>
-        <image:title>${escapeXml(photo.title || "Photography by Kabiur Rahman Riyad")}</image:title>
-        <image:caption>${escapeXml(photo.caption || photo.title || "Street, travel, and documentary photography")}</image:caption>
-        <image:license>${licenseUrl}</image:license>
+        <image:loc>${escapeXml(optimizedUrl)}</image:loc>
+        <image:title>${escapeXml(getPhotoTitle(photo))}</image:title>
+        <image:caption>${escapeXml(getPhotoDescription(photo))}</image:caption>
+        <image:license>${escapeXml(licenseUrl)}</image:license>
       </image:image>
     </url>`;
     })
@@ -90,10 +92,10 @@ export async function GET() {
 
       return `
       <image:image>
-        <image:loc>${optimizedUrl}</image:loc>
-        <image:title>${escapeXml(photo.title || "Photography by Kabiur Rahman Riyad")}</image:title>
-        <image:caption>${escapeXml(photo.caption || photo.title || "Street, travel, and documentary photography")}</image:caption>
-        <image:license>${homeLicenseUrl}</image:license>
+        <image:loc>${escapeXml(optimizedUrl)}</image:loc>
+        <image:title>${escapeXml(getPhotoTitle(photo))}</image:title>
+        <image:caption>${escapeXml(getPhotoDescription(photo))}</image:caption>
+        <image:license>${escapeXml(homeLicenseUrl)}</image:license>
       </image:image>`;
     })
     .join("");
@@ -102,7 +104,7 @@ export async function GET() {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
-    <loc>${baseUrl}</loc>
+    <loc>${escapeXml(baseUrl)}</loc>
     <lastmod>${new Date().toISOString()}</lastmod>
     <changefrequency>weekly</changefrequency>
     <priority>1.0</priority>${homepageImages}

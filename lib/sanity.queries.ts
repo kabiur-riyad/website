@@ -1,6 +1,7 @@
 export const photoGridQuery = `
   *[_type == "photo" && defined(image) && homeVisible != false] | order(orderRank asc) {
     _id,
+    _updatedAt,
     title,
     year,
     location,
@@ -132,13 +133,22 @@ export const sitemapDataQuery = `
   }
 `;
 
+export const photoSitemapQuery = `
+  *[_type == "photo" && defined(image) && homeVisible != false] | order(orderRank asc) {
+    _id,
+    "lastmod": _updatedAt
+  }
+`;
+
 export const photoByIdQuery = `
   *[_type == "photo" && _id == $id][0] {
     _id,
+    _updatedAt,
     title,
     year,
     location,
     caption,
+    license,
     image{
       ...,
       "assetMeta": asset->{

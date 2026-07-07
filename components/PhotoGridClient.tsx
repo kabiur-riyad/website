@@ -12,6 +12,7 @@ type Props = {
   hideViewToggle?: boolean;
   hideTitles?: boolean;
   initialPhotoId?: string;
+  lightboxUrlMode?: "query" | "photoPath";
 };
 
 type CarouselTransition = {
@@ -36,11 +37,17 @@ export default function PhotoGridClient({
   hideViewToggle = false,
   hideTitles = false,
   initialPhotoId,
+  lightboxUrlMode = "query",
 }: Props) {
   const CAROUSEL_TRANSITION_MS = 360;
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const initialIndex = initialPhotoId
+    ? photos.findIndex((photo) => photo._id === initialPhotoId)
+    : -1;
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(
+    initialIndex >= 0 ? initialIndex : null
+  );
   const [viewMode, setViewMode] = useState<"grid" | "carousel">(defaultViewMode);
-  const [carouselIndex, setCarouselIndex] = useState(0);
+  const [carouselIndex, setCarouselIndex] = useState(initialIndex >= 0 ? initialIndex : 0);
 
   const [transition, setTransition] = useState<CarouselTransition | null>(null);
   const [resumePhase, setResumePhase] = useState<"idle" | "running">("idle");
@@ -611,6 +618,7 @@ export default function PhotoGridClient({
           startIndex={selectedIndex}
           onClose={() => setSelectedIndex(null)}
           hideTitles={hideTitles}
+          urlMode={lightboxUrlMode}
         />
       ) : null}
     </>

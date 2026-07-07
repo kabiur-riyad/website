@@ -20,6 +20,7 @@ export type PhotoLicense = "all-rights-reserved" | "unsplash" | "cc-by-nc";
 
 export type Photo = {
   _id: string;
+  _updatedAt?: string;
   title?: string;
   year?: number;
   location?: string;

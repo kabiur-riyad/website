@@ -10,6 +10,7 @@ type Props = {
   startIndex: number;
   onClose: () => void;
   hideTitles?: boolean;
+  urlMode?: "query" | "photoPath";
 };
 
 function formatPhotoMeta(location?: string, year?: number) {
@@ -36,11 +37,25 @@ function getLicenseData(license?: Photo["license"]) {
   }
 }
 
-export default function Lightbox({ photos, startIndex, onClose, hideTitles = false }: Props) {
+function getLightboxTitle(photo?: Photo) {
+  const siteTitle = "Kabiur Rahman Riyad";
+  if (!photo) return siteTitle;
+  const title = photo.title?.trim() || "Photograph";
+  return `${title} | ${siteTitle}`;
+}
+
+export default function Lightbox({
+  photos,
+  startIndex,
+  onClose,
+  hideTitles = false,
+  urlMode = "query",
+}: Props) {
   const [index, setIndex] = useState(startIndex);
   const startX = useRef<number | null>(null);
   const [cursorHalf, setCursorHalf] = useState<"left" | "right" | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeUrl = useRef<string | null>(null);
 
   useEffect(() => {
     setIndex(startIndex);
@@ -60,12 +75,16 @@ export default function Lightbox({ photos, startIndex, onClose, hideTitles = fal
   // Handle closing - remove photo param from URL
   const handleClose = useCallback(() => {
     if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      url.searchParams.delete("photo");
-      window.history.replaceState({}, "", url.toString());
+      if (urlMode === "photoPath") {
+        window.history.replaceState({}, "", closeUrl.current || "/");
+      } else {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("photo");
+        window.history.replaceState({}, "", url.toString());
+      }
     }
     onClose();
-  }, [onClose]);
+  }, [onClose, urlMode]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -96,16 +115,53 @@ export default function Lightbox({ photos, startIndex, onClose, hideTitles = fal
     };
   }, []);
 
+  useEffect(() => {
+    if (urlMode !== "photoPath" || typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("photo");
+    closeUrl.current = url.pathname.startsWith("/photos/")
+      ? "/"
+      : `${url.pathname}${url.search}`;
+  }, [urlMode]);
+
+  useEffect(() => {
+    if (urlMode !== "photoPath" || typeof window === "undefined") return;
+
+    const onPopState = () => {
+      onClose();
+    };
+
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [onClose, urlMode]);
+
+  useEffect(() => {
+    if (urlMode !== "photoPath" || typeof document === "undefined") return;
+    document.title = getLightboxTitle(photo);
+    return () => {
+      document.title = "Kabiur Rahman Riyad";
+    };
+  }, [photo, urlMode]);
+
   // Update URL when photo changes in lightbox for shareable links
   useEffect(() => {
     if (typeof window === "undefined") return;
     const currentPhoto = photos[index];
     if (!currentPhoto) return;
 
+    if (urlMode === "photoPath") {
+      const nextPath = `/photos/${currentPhoto._id}`;
+      if (window.location.pathname === nextPath) return;
+      const hasOpenedPhotoPath = window.location.pathname.startsWith("/photos/");
+      const method = hasOpenedPhotoPath ? "replaceState" : "pushState";
+      window.history[method]({}, "", nextPath);
+      return;
+    }
+
     const url = new URL(window.location.href);
     url.searchParams.set("photo", currentPhoto._id);
     window.history.replaceState({}, "", url.toString());
-  }, [index, photos]);
+  }, [index, photos, urlMode]);
 
   const src = useMemo(() => {
     if (!photo?.image) return null;
