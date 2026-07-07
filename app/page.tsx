@@ -4,7 +4,13 @@ import { sanityClient, hasSanityConfig } from "@/lib/sanity.client";
 import { photoGridQuery, siteSettingsQuery } from "@/lib/sanity.queries";
 import { Photo, SiteSettings } from "@/lib/types";
 import { urlFor } from "@/lib/sanity.image";
-import { getPhotoPageUrl } from "@/lib/photo.seo";
+import {
+  getPhotoPageUrl,
+  getPhotoLicenseUrl,
+  getPhotoAcquireLicenseUrl,
+  getPhotoTitle,
+  getPhotoDescription,
+} from "@/lib/photo.seo";
 
 export const revalidate = 60;
 
@@ -28,6 +34,7 @@ async function getData() {
 export default async function HomePage({ searchParams }: HomePageProps) {
   const { photo: initialPhotoId } = await searchParams;
   const { photos, settings } = await getData();
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://riyad.pro.bd";
 
   // Build ImageObject structured data for each photo
   const imageObjects = photos
@@ -35,18 +42,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     .map((photo) => {
       const builder = urlFor(photo.image)!;
       const fullImageUrl = builder.url();
-      const pageUrl = getPhotoPageUrl("https://riyad.pro.bd", photo._id);
+      const pageUrl = getPhotoPageUrl(baseUrl, photo._id);
 
-      // Map license enum to actual license URL
-      const licenseUrlMap: Record<string, string> = {
-        "unsplash": "https://unsplash.com/license",
-        "cc-by-nc": "https://creativecommons.org/licenses/by-nc/4.0/",
-      };
       const hasCustomLicense = photo.license && photo.license !== "all-rights-reserved";
-      const licenseUrl = hasCustomLicense ? licenseUrlMap[photo.license!] : undefined;
-      const acquireLicenseUrl = hasCustomLicense
-        ? undefined
-        : (settings?.email ? `mailto:${settings.email}` : undefined);
+      const licenseUrl = getPhotoLicenseUrl(photo, baseUrl);
+      const acquireLicenseUrl = getPhotoAcquireLicenseUrl(photo, baseUrl);
 
       return {
         "@context": "https://schema.org",
@@ -54,8 +54,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         "@id": pageUrl,
         url: pageUrl,
         contentUrl: fullImageUrl,
-        name: photo.title || "Photography by Kabiur Rahman Riyad",
-        description: photo.caption || photo.title || "Street, travel, and documentary photography",
+        name: getPhotoTitle(photo),
+        description: getPhotoDescription(photo),
         contentLocation: photo.location
           ? {
               "@type": "Place",
@@ -66,7 +66,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         author: {
           "@type": "Person",
           name: "Kabiur Rahman Riyad",
-          url: "https://riyad.pro.bd",
+          url: baseUrl,
         },
         creator: {
           "@type": "Person",
@@ -76,8 +76,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           "@type": "Person",
           name: "Kabiur Rahman Riyad",
         },
-        license: licenseUrl || "https://riyad.pro.bd",
-        ...(acquireLicenseUrl && { acquireLicensePage: acquireLicenseUrl }),
+        license: licenseUrl,
+        acquireLicensePage: acquireLicenseUrl,
         creditText: "Kabiur Rahman Riyad",
         copyrightNotice: `© ${photo.year || new Date().getFullYear()} Kabiur Rahman Riyad. ${hasCustomLicense ? "Some rights reserved." : "All rights reserved."}`,
       };

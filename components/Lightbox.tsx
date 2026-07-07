@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { Photo } from "@/lib/types";
 import { getImageDimensions, urlFor } from "@/lib/sanity.image";
+import { getPhotoAlt } from "@/lib/photo.seo";
 
 type Props = {
   photos: Photo[];
@@ -226,7 +227,7 @@ export default function Lightbox({
             <div className="photo-media">
               <Image
                 src={src.url}
-                alt={photo?.title || "Photography"}
+                alt={photo ? getPhotoAlt(photo) : "Photography"}
                 width={src.width}
                 height={src.height}
                 sizes="92vw"

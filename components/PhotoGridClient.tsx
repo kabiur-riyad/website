@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Photo } from "@/lib/types";
 import { getImageDimensions, urlFor } from "@/lib/sanity.image";
 import Lightbox from "./Lightbox";
+import { getPhotoAlt } from "@/lib/photo.seo";
 
 type Props = {
   photos: Photo[];
@@ -255,6 +256,7 @@ export default function PhotoGridClient({
         title: photo.title,
         location: photo.location,
         year: photo.year,
+        alt: getPhotoAlt(photo),
         src,
         width,
         height,
@@ -312,7 +314,7 @@ export default function PhotoGridClient({
 
   const renderSlide = useCallback(
     (
-      slide: { id: string; title?: string | null; year?: number; src: string; width: number; height: number } | null,
+      slide: { id: string; title?: string | null; year?: number; alt: string; src: string; width: number; height: number } | null,
       className: string,
       priority = false,
       style?: CSSProperties,
@@ -326,7 +328,7 @@ export default function PhotoGridClient({
               <Image
                 key={`${slide.id}-${className}`}
                 src={slide.src}
-                alt={slide.title || "Photography"}
+                alt={slide.alt}
                 width={slide.width}
                 height={slide.height}
                 sizes="(max-width: 768px) 90vw, 72vw"
@@ -516,7 +518,7 @@ export default function PhotoGridClient({
                 return (
                   <Image
                     src={src}
-                    alt={photo.title || "Photography"}
+                    alt={getPhotoAlt(photo)}
                     width={width}
                     height={height}
                     sizes="(max-width: 768px) 92vw, (max-width: 1200px) 45vw, 30vw"

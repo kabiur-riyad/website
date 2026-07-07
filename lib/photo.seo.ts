@@ -38,3 +38,24 @@ export function getPhotoAlt(photo: Photo) {
 export function getPhotoPageUrl(baseUrl: string, photoId: string) {
   return `${baseUrl.replace(/\/$/, "")}/photos/${photoId}`;
 }
+
+export function getPhotoLicenseUrl(photo: Photo, baseUrl: string) {
+  const licenseUrlMap: Record<string, string> = {
+    unsplash: "https://unsplash.com/license",
+    "cc-by-nc": "https://creativecommons.org/licenses/by-nc/4.0/",
+  };
+
+  if (photo.license && photo.license !== "all-rights-reserved") {
+    return licenseUrlMap[photo.license] || `${baseUrl.replace(/\/$/, "")}/about`;
+  }
+
+  return `${baseUrl.replace(/\/$/, "")}/about`;
+}
+
+export function getPhotoAcquireLicenseUrl(photo: Photo, baseUrl: string) {
+  if (photo.license === "unsplash") {
+    return "https://unsplash.com/license";
+  }
+  return `${baseUrl.replace(/\/$/, "")}/about`;
+}
+

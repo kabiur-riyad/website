@@ -1,8 +1,13 @@
 import { sanityClient, hasSanityConfig } from "@/lib/sanity.client";
 import { photoGridQuery, siteSettingsQuery } from "@/lib/sanity.queries";
 import { Photo, SiteSettings } from "@/lib/types";
-import { urlFor, getImageDimensions } from "@/lib/sanity.image";
-import { getPhotoDescription, getPhotoPageUrl, getPhotoTitle } from "@/lib/photo.seo";
+import { urlFor } from "@/lib/sanity.image";
+import {
+  getPhotoDescription,
+  getPhotoPageUrl,
+  getPhotoTitle,
+  getPhotoLicenseUrl,
+} from "@/lib/photo.seo";
 
 export const dynamic = "force-dynamic";
 
@@ -22,36 +27,13 @@ export async function GET() {
     }
   }
 
-  const contactUrl = settings?.email ? `mailto:${settings.email}` : baseUrl;
-
-  // Map license enum to URL
-  const licenseUrlMap: Record<string, string> = {
-    "unsplash": "https://unsplash.com/license",
-    "cc-by-nc": "https://creativecommons.org/licenses/by-nc/4.0/",
-  };
-
   // Build image sitemap entries
   const imageEntries = photos
     .filter((photo) => photo.image && urlFor(photo.image))
     .map((photo) => {
       const builder = urlFor(photo.image)!;
-      const dims = getImageDimensions(photo.image);
-
-      // Get full-res image URL
       const imageUrl = builder.url();
-
-      // Get optimized version for sitemap
-      const optimizedUrl = builder
-        .width(1200)
-        .height(dims?.height ? Math.round((1200 * dims.height) / (dims?.width || 1200)) : 800)
-        .fit("max")
-        .auto("format")
-        .quality(85)
-        .url();
-
-      const licenseUrl = photo.license && photo.license !== "all-rights-reserved"
-        ? licenseUrlMap[photo.license]
-        : contactUrl;
+      const licenseUrl = getPhotoLicenseUrl(photo, baseUrl);
       const pageUrl = getPhotoPageUrl(baseUrl, photo._id);
 
       return `
@@ -61,7 +43,7 @@ export async function GET() {
       <changefrequency>monthly</changefrequency>
       <priority>0.7</priority>
       <image:image>
-        <image:loc>${escapeXml(optimizedUrl)}</image:loc>
+        <image:loc>${escapeXml(imageUrl)}</image:loc>
         <image:title>${escapeXml(getPhotoTitle(photo))}</image:title>
         <image:caption>${escapeXml(getPhotoDescription(photo))}</image:caption>
         <image:license>${escapeXml(licenseUrl)}</image:license>
@@ -76,23 +58,12 @@ export async function GET() {
     .slice(0, 20) // Limit to 20 images for homepage reference
     .map((photo) => {
       const builder = urlFor(photo.image)!;
-      const dims = getImageDimensions(photo.image);
-
-      const optimizedUrl = builder
-        .width(800)
-        .height(dims?.height ? Math.round((800 * dims.height) / (dims?.width || 800)) : 600)
-        .fit("max")
-        .auto("format")
-        .quality(80)
-        .url();
-
-      const homeLicenseUrl = photo.license && photo.license !== "all-rights-reserved" 
-        ? licenseUrlMap[photo.license] 
-        : contactUrl;
+      const imageUrl = builder.url();
+      const homeLicenseUrl = getPhotoLicenseUrl(photo, baseUrl);
 
       return `
       <image:image>
-        <image:loc>${escapeXml(optimizedUrl)}</image:loc>
+        <image:loc>${escapeXml(imageUrl)}</image:loc>
         <image:title>${escapeXml(getPhotoTitle(photo))}</image:title>
         <image:caption>${escapeXml(getPhotoDescription(photo))}</image:caption>
         <image:license>${escapeXml(homeLicenseUrl)}</image:license>

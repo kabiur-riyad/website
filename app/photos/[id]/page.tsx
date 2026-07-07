@@ -11,6 +11,8 @@ import {
   getPhotoDescription,
   getPhotoPageUrl,
   getPhotoTitle,
+  getPhotoLicenseUrl,
+  getPhotoAcquireLicenseUrl,
 } from "@/lib/photo.seo";
 
 export const revalidate = 60;
@@ -37,18 +39,6 @@ async function getData() {
   return { photos, settings };
 }
 
-function getLicenseUrl(photo: Photo, settings?: SiteSettings | null) {
-  const licenseUrlMap: Record<string, string> = {
-    unsplash: "https://unsplash.com/license",
-    "cc-by-nc": "https://creativecommons.org/licenses/by-nc/4.0/",
-  };
-
-  if (photo.license && photo.license !== "all-rights-reserved") {
-    return licenseUrlMap[photo.license];
-  }
-
-  return settings?.email ? `mailto:${settings.email}` : "https://riyad.pro.bd/about";
-}
 
 function buildPhotoImageData(photo: Photo, width = 1200) {
   if (!photo.image) return null;
@@ -137,12 +127,13 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
   const pageUrl = getPhotoPageUrl(baseUrl, photo._id);
   const title = getPhotoTitle(photo);
   const hasCustomLicense = photo.license && photo.license !== "all-rights-reserved";
+  const originalImageUrl = urlFor(photo.image)?.url() || image.url;
   const imageObject = {
     "@context": "https://schema.org",
     "@type": "ImageObject",
     "@id": pageUrl,
     url: pageUrl,
-    contentUrl: image.url,
+    contentUrl: originalImageUrl,
     width: image.width,
     height: image.height,
     name: title,
@@ -168,8 +159,8 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
       "@type": "Person",
       name: "Kabiur Rahman Riyad",
     },
-    license: getLicenseUrl(photo, settings),
-    acquireLicensePage: hasCustomLicense ? undefined : "https://riyad.pro.bd/about",
+    license: getPhotoLicenseUrl(photo, baseUrl),
+    acquireLicensePage: getPhotoAcquireLicenseUrl(photo, baseUrl),
     creditText: "Kabiur Rahman Riyad",
     copyrightNotice: `Copyright ${photo.year || new Date().getFullYear()} Kabiur Rahman Riyad. ${
       hasCustomLicense ? "Some rights reserved." : "All rights reserved."

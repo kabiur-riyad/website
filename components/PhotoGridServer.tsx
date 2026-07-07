@@ -1,5 +1,6 @@
 import { Photo } from "@/lib/types";
 import { urlFor, getImageDimensions } from "@/lib/sanity.image";
+import { getPhotoAlt } from "@/lib/photo.seo";
 
 interface Props {
   photos: Photo[];
@@ -35,7 +36,7 @@ export default function PhotoGridServer({ photos }: Props) {
                 <figure className="seo-photo-figure">
                   <img
                     src={src}
-                    alt={photo.title || "Photography by Kabiur Rahman Riyad"}
+                    alt={getPhotoAlt(photo)}
                     width={800}
                     height={Math.round((800 * height) / width)}
                     loading="lazy"
