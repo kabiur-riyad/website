@@ -231,6 +231,7 @@ export default function Lightbox({
                 width={src.width}
                 height={src.height}
                 sizes="92vw"
+                loading="eager"
                 onContextMenu={(event) => event.preventDefault()}
               />
             </div>
